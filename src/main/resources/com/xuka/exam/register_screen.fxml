@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.xuka.exam.RegisterController"
+            prefHeight="200.0" prefWidth="300.0">
+    <VBox layoutX="10.0" layoutY="10.0" spacing="10.0">
+        <Label text="Register" />
+        <TextField fx:id="usernameField" promptText="Username" onAction="#onUsernameAction" />
+        <TextField fx:id="emailField" promptText="Email" onAction="#onEmailAction" />
+        <TextField fx:id="phoneField" promptText="Phone" onAction="#onPhoneAction" />
+        <HBox spacing="5.0">
+            <Label text="Date of Birth:" />
+            <ComboBox fx:id="dayComboBox" promptText="Day" prefWidth="60" />
+            <ComboBox fx:id="monthComboBox" promptText="Month" prefWidth="80" />
+            <ComboBox fx:id="yearComboBox" promptText="Year" prefWidth="80" />
+        </HBox>
+        <PasswordField fx:id="passwordField" promptText="Password" onAction="#onPasswordAction" />
+        <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password" onAction="#onConfirmPasswordAction" />
+        <Button fx:id="registerButton" onAction="#onRegisterButtonAction" text="Register" />
+        <Label fx:id="messageLabel" text="" style="-fx-text-fill: red;" />
+    </VBox>
+</AnchorPane>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.xuka.exam.LoginController"
+            prefHeight="300.0" prefWidth="400.0">
+    <VBox layoutX="50.0" layoutY="60.0" spacing="15.0" prefWidth="300.0">
+        <Label text="Login" style="-fx-font-size: 24; -fx-font-weight: bold;" />
+        <Separator />
+        <Label text="Username:" />
+        <TextField fx:id="usernameField" promptText="Enter your username" onAction="#onLoginButtonAction" />
+        <Label text="Password:" />
+        <PasswordField fx:id="passwordField" promptText="Enter your password" onAction="#onLoginButtonAction" />
+        <HBox spacing="10.0" layoutY="180.0">
+            <Button fx:id="loginButton" text="Login" prefWidth="100.0" onAction="#onLoginButtonAction" />
+            <Button fx:id="clearButton" text="Clear" prefWidth="100.0" onAction="#onClearButtonAction" />
+        </HBox>
+        <HBox spacing="10.0" layoutY="220.0">
+            <Button fx:id="registerButton" text="Register" prefWidth="100.0" onAction="#onRegisterButtonAction" />
+        </HBox>
+        <Label fx:id="messageLabel" text="" style="-fx-text-fill: red;" />
+    </VBox>
+</AnchorPane>
+
