@@ -207,16 +207,6 @@ java -m javafx.controls,javafx.fxml -cp target/exam-1.0-SNAPSHOT.jar com.xuka.ex
 - ⏳ Reports and analytics
 - ⏳ Exam scheduling
 
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -m 'Add YourFeature'`)
-4. Push to the branch (`git push origin feature/YourFeature`)
-5. Open a Pull Request
-
 ## 📝 Code Style
 
 - Follow Java naming conventions
@@ -242,7 +232,7 @@ Contributions are welcome! To contribute:
 
 <div align="center">
 
-**⭐ This project is in early stages - contributions welcome!**
+**⭐ This project is in early stages!!**
 
 [View Issues](https://github.com/Xuankhoa31789/exam/issues) · [Suggest Features](https://github.com/Xuankhoa31789/exam/issues)
 
