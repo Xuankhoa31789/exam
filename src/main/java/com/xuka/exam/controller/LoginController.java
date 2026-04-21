@@ -1,7 +1,8 @@
-package com.xuka.exam;
+package com.xuka.exam.controller;
 
 import java.io.IOException;
 
+import com.xuka.exam.ExamApplication;
 import com.xuka.exam.dao.StudentDAO;
 import com.xuka.exam.models.Student;
 

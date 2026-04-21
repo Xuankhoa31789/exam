@@ -1,7 +1,8 @@
-package com.xuka.exam;
+package com.xuka.exam.controller;
 
 import com.xuka.exam.dao.StudentDAO;
 import com.xuka.exam.models.Student;
+import com.xuka.exam.ExamApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;

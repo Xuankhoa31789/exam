@@ -4,6 +4,7 @@ import com.xuka.exam.config.HibernateUtil;
 import com.xuka.exam.models.Student;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
@@ -118,7 +119,7 @@ public class StudentDAO {
     public List<Student> getAll() {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            jakarta.persistence.TypedQuery<Student> query = em.createQuery("FROM Student", Student.class);
+            TypedQuery<Student> query = em.createQuery("FROM Student", Student.class);
             return query.getResultList();
         } finally {
             em.close();
@@ -134,7 +135,7 @@ public class StudentDAO {
     public Student getByEmail(String email) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            jakarta.persistence.TypedQuery<Student> query = em.createQuery("FROM Student WHERE email = :email", Student.class);
+            TypedQuery<Student> query = em.createQuery("FROM Student WHERE email = :email", Student.class);
             query.setParameter("email", email);
             List<Student> results = query.getResultList();
             return results.isEmpty() ? null : results.get(0);
@@ -152,7 +153,7 @@ public class StudentDAO {
     public Student getByUsername(String username) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            jakarta.persistence.TypedQuery<Student> query = em.createQuery("FROM Student WHERE username = :username", Student.class);
+            TypedQuery<Student> query = em.createQuery("FROM Student WHERE username = :username", Student.class);
             query.setParameter("username", username);
             List<Student> results = query.getResultList();
             return results.isEmpty() ? null : results.get(0);
