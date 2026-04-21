@@ -3,12 +3,16 @@ package com.xuka.exam;
 import com.xuka.exam.dao.StudentDAO;
 import com.xuka.exam.models.Student;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
@@ -42,6 +46,9 @@ public class RegisterController implements Initializable {
 
     @FXML
     private Button registerButton;
+
+    @FXML
+    private Button backButton;
 
     @FXML
     private Label messageLabel;
@@ -120,6 +127,51 @@ public class RegisterController implements Initializable {
             messageLabel.setText("Registration failed. Student may already exist or there was a DB error.");
             messageLabel.setStyle("-fx-text-fill: red;");
             System.out.println("Registration failed. Student may already exist or there was a DB error.");
+        }
+    }
+
+    @FXML
+    private void onUsernameAction() {
+        // Move to next field (email)
+        emailField.requestFocus();
+    }
+
+    @FXML
+    private void onEmailAction() {
+        // Move to next field (phone)
+        phoneField.requestFocus();
+    }
+
+    @FXML
+    private void onPhoneAction() {
+        // Move to next field (day combo box)
+        dayComboBox.requestFocus();
+    }
+
+    @FXML
+    private void onPasswordAction() {
+        // Move to next field (confirm password)
+        confirmPasswordField.requestFocus();
+    }
+
+    @FXML
+    private void onConfirmPasswordAction() {
+        // Trigger registration when Enter is pressed
+        onRegisterButtonAction();
+    }
+
+    @FXML
+    private void onBackButtonAction() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("login_screen.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 400, 500);
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setTitle("Login");
+            stage.setScene(scene);
+        } catch (IOException e) {
+            e.printStackTrace();
+            messageLabel.setText("Error loading login screen.");
+            messageLabel.setStyle("-fx-text-fill: red;");
         }
     }
 }

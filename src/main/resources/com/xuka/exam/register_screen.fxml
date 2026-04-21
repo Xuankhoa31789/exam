@@ -6,21 +6,32 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.xuka.exam.RegisterController"
-            prefHeight="200.0" prefWidth="300.0">
-    <VBox layoutX="10.0" layoutY="10.0" spacing="10.0">
-        <Label text="Register" />
-        <TextField fx:id="usernameField" promptText="Username" onAction="#onUsernameAction" />
-        <TextField fx:id="emailField" promptText="Email" onAction="#onEmailAction" />
-        <TextField fx:id="phoneField" promptText="Phone" onAction="#onPhoneAction" />
-        <HBox spacing="5.0">
+            prefHeight="550.0" prefWidth="400.0">
+    <ScrollPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" fitToWidth="true">
+        <VBox spacing="15.0" style="-fx-padding: 30 50 30 50;">
+            <HBox spacing="10.0">
+                <Button fx:id="backButton" onAction="#onBackButtonAction" text="← Back" prefWidth="70.0" />
+            </HBox>
+            <Label text="Register" style="-fx-font-size: 24; -fx-font-weight: bold;" />
+            <Separator />
+            <Label text="Username:" />
+            <TextField fx:id="usernameField" promptText="Username" onAction="#onUsernameAction" />
+            <Label text="Email:" />
+            <TextField fx:id="emailField" promptText="Email" onAction="#onEmailAction" />
+            <Label text="Phone:" />
+            <TextField fx:id="phoneField" promptText="Phone" onAction="#onPhoneAction" />
             <Label text="Date of Birth:" />
-            <ComboBox fx:id="dayComboBox" promptText="Day" prefWidth="60" />
-            <ComboBox fx:id="monthComboBox" promptText="Month" prefWidth="80" />
-            <ComboBox fx:id="yearComboBox" promptText="Year" prefWidth="80" />
-        </HBox>
-        <PasswordField fx:id="passwordField" promptText="Password" onAction="#onPasswordAction" />
-        <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password" onAction="#onConfirmPasswordAction" />
-        <Button fx:id="registerButton" onAction="#onRegisterButtonAction" text="Register" />
-        <Label fx:id="messageLabel" text="" style="-fx-text-fill: red;" />
-    </VBox>
+            <HBox spacing="5.0">
+                <ComboBox fx:id="dayComboBox" promptText="Day" prefWidth="60" />
+                <ComboBox fx:id="monthComboBox" promptText="Month" prefWidth="80" />
+                <ComboBox fx:id="yearComboBox" promptText="Year" prefWidth="80" />
+            </HBox>
+            <Label text="Password:" />
+            <PasswordField fx:id="passwordField" promptText="Password" onAction="#onPasswordAction" />
+            <Label text="Confirm Password:" />
+            <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password" onAction="#onConfirmPasswordAction" />
+            <Button fx:id="registerButton" onAction="#onRegisterButtonAction" text="Register" prefWidth="100.0" />
+            <Label fx:id="messageLabel" text="" style="-fx-text-fill: red;" />
+        </VBox>
+    </ScrollPane>
 </AnchorPane>

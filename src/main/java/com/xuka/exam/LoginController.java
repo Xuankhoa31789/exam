@@ -71,7 +71,7 @@ public class LoginController {
     private void onRegisterButtonAction() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("register_screen.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 320, 400);
+            Scene scene = new Scene(fxmlLoader.load(), 400, 500);
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setTitle("Register");
             stage.setScene(scene);
