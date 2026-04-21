@@ -58,31 +58,6 @@ public class RegisterController implements Initializable {
     }
 
     @FXML
-    private void onUsernameAction() {
-        // TODO: Implement username field action
-    }
-
-    @FXML
-    private void onEmailAction() {
-        // TODO: Implement email field action
-    }
-
-    @FXML
-    private void onPhoneAction() {
-        // Optionally handle phone field action
-    }
-
-    @FXML
-    private void onPasswordAction() {
-        // TODO: Implement password field action
-    }
-
-    @FXML
-    private void onConfirmPasswordAction() {
-        // TODO: Implement confirm password field action
-    }
-
-    @FXML
     private void onRegisterButtonAction() {
         String username = usernameField.getText();
         String email = emailField.getText();

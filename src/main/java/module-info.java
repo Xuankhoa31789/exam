@@ -1,4 +1,5 @@
 module com.xuka.exam {
+    requires transitive javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
 
@@ -6,7 +7,7 @@ module com.xuka.exam {
     requires org.kordamp.ikonli.javafx;
 
     // Hibernate and Jakarta Persistence
-    requires jakarta.persistence;
+    requires transitive jakarta.persistence;
     requires org.hibernate.orm.core;
 
     // Logging

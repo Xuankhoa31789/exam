@@ -126,6 +126,7 @@ public class Student {
                 ", dateOfBirth=" + dateOfBirth +
                 ", department='" + department + '\'' +
                 ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
                 '}';
     }
 }
