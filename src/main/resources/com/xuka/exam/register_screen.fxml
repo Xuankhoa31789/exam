@@ -5,7 +5,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.xuka.exam.RegisterController"
+            fx:controller="com.xuka.exam.controller.RegisterController"
             prefHeight="550.0" prefWidth="400.0">
     <ScrollPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" fitToWidth="true">
         <VBox spacing="15.0" style="-fx-padding: 30 50 30 50;">

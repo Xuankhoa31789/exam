@@ -14,6 +14,7 @@ module com.xuka.exam {
     requires org.slf4j;
 
     opens com.xuka.exam to javafx.fxml;
+    opens com.xuka.exam.controller to javafx.fxml;
     opens com.xuka.exam.models to org.hibernate.orm.core;
     opens com.xuka.exam.config to org.hibernate.orm.core;
     
@@ -21,4 +22,5 @@ module com.xuka.exam {
     exports com.xuka.exam.models;
     exports com.xuka.exam.config;
     exports com.xuka.exam.dao;
+    exports com.xuka.exam.controller;
 }
