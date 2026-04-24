@@ -1,48 +1,61 @@
 package com.xuka.exam.models;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "subject")
+@Table(name = "Subject")
 public class Subject {
     @Id
-    @Column(name = "subject_id", length = 20)
-    private String subjectId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "subject_id")
+    private int subjectId;
 
     @Column(name = "subject_name", nullable = false, length = 150)
     private String subjectName;
 
-    @Column(name = "subject_code", length = 20)
+    @Column(name = "subject_code", nullable = false, unique = true, length = 20)
     private String subjectCode;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Exam> exams;
+
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Question> questions;
+
     // Constructors
     public Subject() {
     }
 
-    public Subject(String subjectId, String subjectName) {
-        this.subjectId = subjectId;
+    public Subject(String subjectName, String subjectCode) {
         this.subjectName = subjectName;
+        this.subjectCode = subjectCode;
     }
 
-    public Subject(String subjectId, String subjectName, String subjectCode, String description) {
-        this.subjectId = subjectId;
+    public Subject(String subjectName, String subjectCode, String description) {
         this.subjectName = subjectName;
         this.subjectCode = subjectCode;
         this.description = description;
     }
 
     // Getters and Setters
-    public String getSubjectId() {
+    public int getSubjectId() {
         return subjectId;
     }
 
-    public void setSubjectId(String subjectId) {
+    public void setSubjectId(int subjectId) {
         this.subjectId = subjectId;
     }
 
@@ -70,13 +83,19 @@ public class Subject {
         this.description = description;
     }
 
-    @Override
-    public String toString() {
-        return "Subject{" +
-                "subjectId='" + subjectId + '\'' +
-                ", subjectName='" + subjectName + '\'' +
-                ", subjectCode='" + subjectCode + '\'' +
-                ", description='" + description + '\'' +
-                '}';
+    public List<Exam> getExams() {
+        return exams;
+    }
+
+    public void setExams(List<Exam> exams) {
+        this.exams = exams;
+    }
+
+    public List<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
     }
 }

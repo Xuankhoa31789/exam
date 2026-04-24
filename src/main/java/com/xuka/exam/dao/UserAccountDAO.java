@@ -1,39 +1,38 @@
 package com.xuka.exam.dao;
 
-import java.util.List;
-
 import com.xuka.exam.config.HibernateUtil;
-import com.xuka.exam.models.Subject;
-
+import com.xuka.exam.models.UserAccount;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 
+import java.util.List;
+
 /**
- * Data Access Object for Subject entity
- * Handles database operations using Hibernate
+ * Data Access Object for UserAccount entity
+ * Handles database operations for user authentication and account management
  */
-public class SubjectDAO {
+public class UserAccountDAO {
 
     /**
-     * Save a new subject to database
+     * Save a new user account to database
      *
-     * @param subject Subject object to save
+     * @param userAccount UserAccount object to save
      * @return true if successful, false otherwise
      */
-    public boolean save(Subject subject) {
+    public boolean save(UserAccount userAccount) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            em.persist(subject);
+            em.persist(userAccount);
             transaction.commit();
             return true;
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            System.err.println("Error saving subject: " + e.getMessage());
+            System.err.println("Error saving user account: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
@@ -42,24 +41,24 @@ public class SubjectDAO {
     }
 
     /**
-     * Update an existing subject
+     * Update an existing user account
      *
-     * @param subject Subject object to update
+     * @param userAccount UserAccount object to update
      * @return true if successful, false otherwise
      */
-    public boolean update(Subject subject) {
+    public boolean update(UserAccount userAccount) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            em.merge(subject);
+            em.merge(userAccount);
             transaction.commit();
             return true;
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            System.err.println("Error updating subject: " + e.getMessage());
+            System.err.println("Error updating user account: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
@@ -68,19 +67,19 @@ public class SubjectDAO {
     }
 
     /**
-     * Delete a subject by ID
+     * Delete a user account by ID
      *
-     * @param subjectId Subject ID
+     * @param ucId User account ID
      * @return true if successful, false otherwise
      */
-    public boolean delete(int subjectId) {
+    public boolean delete(int ucId) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            Subject subject = em.find(Subject.class, subjectId);
-            if (subject != null) {
-                em.remove(subject);
+            UserAccount userAccount = em.find(UserAccount.class, ucId);
+            if (userAccount != null) {
+                em.remove(userAccount);
                 transaction.commit();
                 return true;
             }
@@ -89,7 +88,7 @@ public class SubjectDAO {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            System.err.println("Error deleting subject: " + e.getMessage());
+            System.err.println("Error deleting user account: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
@@ -98,29 +97,29 @@ public class SubjectDAO {
     }
 
     /**
-     * Get subject by ID
+     * Get user account by ID
      *
-     * @param subjectId Subject ID
-     * @return Subject object or null if not found
+     * @param ucId User account ID
+     * @return UserAccount object or null if not found
      */
-    public Subject getById(int subjectId) {
+    public UserAccount getById(int ucId) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return em.find(Subject.class, subjectId);
+            return em.find(UserAccount.class, ucId);
         } finally {
             em.close();
         }
     }
 
     /**
-     * Get all subjects from database
+     * Get all user accounts
      *
-     * @return List of all subjects
+     * @return List of all user accounts
      */
-    public List<Subject> getAll() {
+    public List<UserAccount> getAll() {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            TypedQuery<Subject> query = em.createQuery("FROM Subject", Subject.class);
+            TypedQuery<UserAccount> query = em.createQuery("FROM UserAccount", UserAccount.class);
             return query.getResultList();
         } finally {
             em.close();
@@ -128,17 +127,17 @@ public class SubjectDAO {
     }
 
     /**
-     * Get subject by name
+     * Get user account by username
      *
-     * @param subjectName Subject name
-     * @return Subject object or null if not found
+     * @param username Username
+     * @return UserAccount object or null if not found
      */
-    public Subject getByName(String subjectName) {
+    public UserAccount getByUsername(String username) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            TypedQuery<Subject> query = em.createQuery("FROM Subject WHERE subjectName = :subjectName", Subject.class);
-            query.setParameter("subjectName", subjectName);
-            List<Subject> results = query.getResultList();
+            TypedQuery<UserAccount> query = em.createQuery("FROM UserAccount WHERE username = :username", UserAccount.class);
+            query.setParameter("username", username);
+            List<UserAccount> results = query.getResultList();
             return results.isEmpty() ? null : results.get(0);
         } finally {
             em.close();
@@ -146,18 +145,17 @@ public class SubjectDAO {
     }
 
     /**
-     * Get subject by code
+     * Get all accounts with specific role
      *
-     * @param subjectCode Subject code
-     * @return Subject object or null if not found
+     * @param role Role (0 = Student, 1 = Teacher)
+     * @return List of user accounts with specified role
      */
-    public Subject getByCode(String subjectCode) {
+    public List<UserAccount> getByRole(int role) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            TypedQuery<Subject> query = em.createQuery("FROM Subject WHERE subjectCode = :subjectCode", Subject.class);
-            query.setParameter("subjectCode", subjectCode);
-            List<Subject> results = query.getResultList();
-            return results.isEmpty() ? null : results.get(0);
+            TypedQuery<UserAccount> query = em.createQuery("FROM UserAccount WHERE role = :role", UserAccount.class);
+            query.setParameter("role", role);
+            return query.getResultList();
         } finally {
             em.close();
         }

@@ -73,7 +73,7 @@ public class QuestionDAO {
      * @param questionId Question ID
      * @return true if successful, false otherwise
      */
-    public boolean delete(String questionId) {
+    public boolean delete(int questionId) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
@@ -103,7 +103,7 @@ public class QuestionDAO {
      * @param questionId Question ID
      * @return Question object or null if not found
      */
-    public Question getById(String questionId) {
+    public Question getById(int questionId) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.find(Question.class, questionId);
@@ -133,7 +133,7 @@ public class QuestionDAO {
      * @param subjectId Subject ID
      * @return List of questions for the subject
      */
-    public List<Question> getBySubject(String subjectId) {
+    public List<Question> getBySubject(int subjectId) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
             TypedQuery<Question> query = em.createQuery("FROM Question WHERE subject.subjectId = :subjectId", Question.class);
@@ -167,7 +167,7 @@ public class QuestionDAO {
      * @param subjectId Subject ID
      * @return Total marks
      */
-    public int getTotalMarksBySubject(String subjectId) {
+    public int getTotalMarksBySubject(int subjectId) {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
             TypedQuery<Integer> query = em.createQuery("SELECT SUM(q.marks) FROM Question q WHERE q.subject.subjectId = :subjectId", Integer.class);
