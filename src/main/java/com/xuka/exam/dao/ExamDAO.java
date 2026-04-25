@@ -1,13 +1,14 @@
 package com.xuka.exam.dao;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import com.xuka.exam.config.HibernateUtil;
 import com.xuka.exam.models.Exam;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-
-import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Data Access Object for Exam entity
@@ -190,6 +191,48 @@ public class ExamDAO {
             TypedQuery<Exam> query = em.createQuery("FROM Exam WHERE examDate = :examDate ORDER BY examDate", Exam.class);
             query.setParameter("examDate", examDate);
             return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get count of exams by teacher and status
+     *
+     * @param teacherId Teacher user info ID
+     * @param status Exam status
+     * @return Count of exams
+     */
+    public long countByTeacherAndStatus(int teacherId, String status) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(e) FROM Exam e WHERE e.teacher.ucInfoId = :teacherId AND e.status = :status",
+                Long.class
+            );
+            query.setParameter("teacherId", teacherId);
+            query.setParameter("status", status);
+            return query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get total count of exams by teacher
+     *
+     * @param teacherId Teacher user info ID
+     * @return Count of exams
+     */
+    public long countByTeacher(int teacherId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(e) FROM Exam e WHERE e.teacher.ucInfoId = :teacherId",
+                Long.class
+            );
+            query.setParameter("teacherId", teacherId);
+            return query.getSingleResult();
         } finally {
             em.close();
         }
