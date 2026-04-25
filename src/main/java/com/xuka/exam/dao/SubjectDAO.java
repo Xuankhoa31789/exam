@@ -84,6 +84,7 @@ public class SubjectDAO {
                 transaction.commit();
                 return true;
             }
+            transaction.rollback();
             return false;
         } catch (Exception e) {
             if (transaction.isActive()) {
@@ -120,7 +121,7 @@ public class SubjectDAO {
     public List<Subject> getAll() {
         EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
         try {
-            TypedQuery<Subject> query = em.createQuery("FROM Subject", Subject.class);
+            TypedQuery<Subject> query = em.createQuery("FROM Subject ORDER BY subjectCode", Subject.class);
             return query.getResultList();
         } finally {
             em.close();

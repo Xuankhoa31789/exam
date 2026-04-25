@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="460.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.xuka.exam.controller.ManageQuestionsController">
+    <children>
+        <Label fx:id="titleLabel" layoutX="14.0" layoutY="18.0" text="Manage Questions" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+        <Button fx:id="addQuestionBtn" layoutX="652.0" layoutY="14.0" mnemonicParsing="false" onAction="#onAddQuestionButtonAction" prefHeight="32.0" prefWidth="32.0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 16; -fx-background-color: #6a1b9a; -fx-text-fill: white; -fx-cursor: hand;" text="+" />
+        <TableView fx:id="questionTable" layoutX="14.0" layoutY="60.0" prefHeight="386.0" prefWidth="672.0">
+            <columns>
+                <TableColumn fx:id="orderColumn" prefWidth="55.0" text="No." />
+                <TableColumn fx:id="questionTextColumn" prefWidth="260.0" text="Question" />
+                <TableColumn fx:id="questionTypeColumn" prefWidth="125.0" text="Type" />
+                <TableColumn fx:id="marksColumn" prefWidth="70.0" text="Marks" />
+                <TableColumn fx:id="correctAnswerColumn" prefWidth="90.0" text="Answer" />
+                <TableColumn fx:id="questionActionColumn" prefWidth="70.0" text="Actions" />
+            </columns>
+        </TableView>
+    </children>
+</AnchorPane>

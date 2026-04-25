@@ -31,8 +31,9 @@
                 </VBox>
             </HBox>
             <HBox spacing="10">
-                <Button fx:id="manageExamsBtn" text="📋 Manage Exams" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageExamsButtonAction" />
-                <Button fx:id="manageSubjectsBtn" text="📚 Manage Subjects" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #388e3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageSubjectsButtonAction" />
+                <Button fx:id="manageExamsBtn" text="Manage Exams" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageExamsButtonAction" />
+                <Button fx:id="manageQuestionsBtn" text="Manage Questions" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #6a1b9a; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageQuestionsButtonAction" />
+                <Button fx:id="manageSubjectsBtn" text="Manage Subjects" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #388e3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageSubjectsButtonAction" />
             </HBox>
         </VBox>
     </top>
