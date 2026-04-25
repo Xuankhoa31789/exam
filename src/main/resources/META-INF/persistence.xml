@@ -9,10 +9,15 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
         <!-- Entities -->
-        <class>com.xuka.exam.models.Student</class>
-        <class>com.xuka.exam.models.Teacher</class>
+        <class>com.xuka.exam.models.UserAccount</class>
+        <class>com.xuka.exam.models.UserInfo</class>
         <class>com.xuka.exam.models.Subject</class>
         <class>com.xuka.exam.models.Question</class>
+        <class>com.xuka.exam.models.Exam</class>
+        <class>com.xuka.exam.models.ExamQuestion</class>
+        <class>com.xuka.exam.models.ExamAttempt</class>
+        <class>com.xuka.exam.models.StudentAnswer</class>
+        <class>com.xuka.exam.models.SubjectRegistration</class>
 
         <!-- Hibernate Configuration -->
         <properties>

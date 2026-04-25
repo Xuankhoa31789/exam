@@ -3,16 +3,16 @@ package com.xuka.exam.models;
 import java.time.LocalDate;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -50,6 +50,9 @@ public class UserInfo {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ExamAttempt> examAttempts;
+
+    @OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SubjectRegistration> subjectRegistrations;
 
     // Constructors
     public UserInfo() {
@@ -151,5 +154,13 @@ public class UserInfo {
 
     public void setExamAttempts(List<ExamAttempt> examAttempts) {
         this.examAttempts = examAttempts;
+    }
+
+    public List<SubjectRegistration> getSubjectRegistrations() {
+        return subjectRegistrations;
+    }
+
+    public void setSubjectRegistrations(List<SubjectRegistration> subjectRegistrations) {
+        this.subjectRegistrations = subjectRegistrations;
     }
 }
