@@ -1,12 +1,13 @@
 package com.xuka.exam.dao;
 
+import java.util.List;
+
 import com.xuka.exam.config.HibernateUtil;
 import com.xuka.exam.models.UserAccount;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-
-import java.util.List;
 
 /**
  * Data Access Object for UserAccount entity

@@ -3,8 +3,11 @@ package com.xuka.exam.controller;
 import java.io.IOException;
 
 import com.xuka.exam.ExamApplication;
-import com.xuka.exam.dao.StudentDAO;
-import com.xuka.exam.models.Student;
+import com.xuka.exam.dao.UserAccountDAO;
+import com.xuka.exam.dao.UserInfoDAO;
+import com.xuka.exam.models.UserAccount;
+import com.xuka.exam.models.UserInfo;
+import com.xuka.exam.util.PasswordUtil;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,6 +17,10 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+/**
+ * Controller for login screen
+ * Handles user authentication using UserAccount model
+ */
 public class LoginController {
 
     @FXML
@@ -25,6 +32,10 @@ public class LoginController {
     @FXML
     private Label messageLabel;
 
+    /**
+     * Handle login button action
+     * Validates username and password against database
+     */
     @FXML
     private void onLoginButtonAction() {
         String username = usernameField.getText();
@@ -38,29 +49,46 @@ public class LoginController {
             return;
         }
 
-        // Query database for student with this username
-        StudentDAO dao = new StudentDAO();
-        Student student = dao.getByUsername(username);
+        // Query database for user account with this username
+        UserAccountDAO userAccountDAO = new UserAccountDAO();
+        UserAccount userAccount = userAccountDAO.getByUsername(username);
 
-        // Authenticate
-        if (student == null) {
+        // Check if user exists
+        if (userAccount == null) {
             messageLabel.setText("Invalid username or password.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
 
-        if (!student.getPassword().equals(password)) {
+        // Verify password using salt and hash
+        if (!PasswordUtil.verifyPassword(password, userAccount.getSalt(), userAccount.getPwdHash())) {
             messageLabel.setText("Invalid username or password.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+            return;
+        }
+
+        // Get user info
+        UserInfoDAO userInfoDAO = new UserInfoDAO();
+        UserInfo userInfo = userInfoDAO.getById(userAccount.getUcId());
+
+        if (userInfo == null) {
+            messageLabel.setText("User information not found.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
 
         // Login successful
-        messageLabel.setText("Login successful! Welcome " + student.getFullName());
+        String roleName = userAccount.getRole() == 1 ? "Teacher" : "Student";
+        messageLabel.setText("Login successful! Welcome " + userInfo.getFullName() + " (" + roleName + ")");
         messageLabel.setStyle("-fx-text-fill: green;");
-        System.out.println("User " + username + " logged in successfully.");
+        System.out.println("User " + username + " logged in successfully as " + roleName);
+
+        // TODO: Navigate to main dashboard/screen based on role
     }
 
+    /**
+     * Handle clear button action
+     */
     @FXML
     private void onClearButtonAction() {
         usernameField.clear();
@@ -68,11 +96,14 @@ public class LoginController {
         messageLabel.setText("");
     }
 
+    /**
+     * Navigate to register screen
+     */
     @FXML
     private void onRegisterButtonAction() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("register_screen.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 400, 500);
+            Scene scene = new Scene(fxmlLoader.load(), 500, 600);
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setTitle("Register");
             stage.setScene(scene);
