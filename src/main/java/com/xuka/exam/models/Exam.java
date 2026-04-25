@@ -38,6 +38,9 @@ public class Exam {
     @Column(name = "status", length = 50)
     private String status; // e.g., Scheduled, Ongoing, Completed
 
+    @Column(name = "exam_data", columnDefinition = "TEXT")
+    private String examData;
+
     @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;
@@ -124,6 +127,14 @@ public class Exam {
         this.status = status;
     }
 
+    public String getExamData() {
+        return examData;
+    }
+
+    public void setExamData(String examData) {
+        this.examData = examData;
+    }
+
     public Subject getSubject() {
         return subject;
     }
@@ -166,6 +177,7 @@ public class Exam {
                 ", duration=" + duration +
                 ", totalMarks=" + totalMarks +
                 ", status='" + status + '\'' +
+                ", examData='" + examData + '\'' +
                 '}';
     }
 }

@@ -1,8 +1,10 @@
 package com.xuka.exam.dao;
 
 import com.xuka.exam.config.HibernateUtil;
+import com.xuka.exam.models.Exam;
 import com.xuka.exam.models.ExamQuestion;
 import com.xuka.exam.models.ExamQuestionId;
+import com.xuka.exam.models.Question;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
@@ -27,6 +29,28 @@ public class ExamQuestionDAO {
         try {
             transaction.begin();
             em.persist(examQuestion);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            System.err.println("Error saving exam question: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public boolean saveByIds(int examId, int questionId, int questionOrder) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            Exam exam = em.getReference(Exam.class, examId);
+            Question question = em.getReference(Question.class, questionId);
+            em.persist(new ExamQuestion(exam, question, questionOrder));
             transaction.commit();
             return true;
         } catch (Exception e) {

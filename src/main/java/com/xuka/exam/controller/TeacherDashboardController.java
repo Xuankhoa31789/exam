@@ -1,6 +1,8 @@
 package com.xuka.exam.controller;
 
+import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -10,24 +12,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import com.xuka.exam.ExamApplication;
 import com.xuka.exam.dao.ExamAttemptDAO;
 import com.xuka.exam.dao.ExamDAO;
 import com.xuka.exam.models.Exam;
 import com.xuka.exam.models.ExamAttempt;
+import com.xuka.exam.models.Subject;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 /**
  * Controller for Teacher Dashboard
@@ -346,12 +360,138 @@ public class TeacherDashboardController implements Initializable {
         welcomeLabel.setText("Welcome, " + teacherName + " - Dashboard");
     }
 
+    @FXML
     public void onManageExamsButtonAction() {
+        try {
+            FXMLLoader loader = new FXMLLoader(ExamApplication.class.getResource("manage_exams_popup.fxml"));
+            Scene scene = new Scene(loader.load(), 600, 400);
+            ManageExamsController controller = loader.getController();
+            controller.setCurrentTeacherId(currentTeacherId);
 
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Manage Exams");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void onManageSubjectsButtonAction() {
+    @FXML
+    public void onManageQuestionsButtonAction() {
+        Stage stage = new Stage();
+        stage.setTitle("Choose Scheduled Exam");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        if (welcomeLabel.getScene() != null) {
+            stage.initOwner(welcomeLabel.getScene().getWindow());
+        }
 
+        TableView<Exam> examTable = new TableView<>();
+        examTable.setPlaceholder(new Label("No scheduled exams found."));
+
+        TableColumn<Exam, Integer> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("examId"));
+        idColumn.setPrefWidth(60);
+
+        TableColumn<Exam, String> titleColumn = new TableColumn<>("Exam");
+        titleColumn.setCellValueFactory(new PropertyValueFactory<>("examTitle"));
+        titleColumn.setPrefWidth(190);
+
+        TableColumn<Exam, LocalDate> dateColumn = new TableColumn<>("Date");
+        dateColumn.setCellValueFactory(new PropertyValueFactory<>("examDate"));
+        dateColumn.setPrefWidth(100);
+
+        TableColumn<Exam, Integer> durationColumn = new TableColumn<>("Duration");
+        durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+        durationColumn.setPrefWidth(90);
+
+        TableColumn<Exam, String> subjectColumn = new TableColumn<>("Subject");
+        subjectColumn.setCellValueFactory(cellData -> {
+            Subject subject = cellData.getValue().getSubject();
+            String subjectName = subject == null ? "" : subject.getSubjectName();
+            return new SimpleStringProperty(subjectName);
+        });
+        subjectColumn.setPrefWidth(160);
+
+        examTable.getColumns().addAll(idColumn, titleColumn, dateColumn, durationColumn, subjectColumn);
+        examTable.setItems(FXCollections.observableArrayList(getScheduledExamsForCurrentTeacher()));
+        examTable.setRowFactory(tableView -> {
+            TableRow<Exam> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getClickCount() == 2) {
+                    showManageQuestionsWindow(row.getItem());
+                }
+            });
+            return row;
+        });
+
+        Label titleLabel = new Label("Choose a scheduled exam");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Button closeButton = new Button("Close");
+        closeButton.setCancelButton(true);
+        closeButton.setOnAction(event -> stage.close());
+
+        HBox actions = new HBox(closeButton);
+        actions.setStyle("-fx-alignment: center-right;");
+
+        VBox content = new VBox(12, titleLabel, examTable, actions);
+        content.setPadding(new Insets(18));
+
+        stage.setScene(new Scene(content, 640, 420));
+        stage.showAndWait();
+    }
+
+    @FXML
+    public void onManageSubjectsButtonAction() {
+        try {
+            FXMLLoader loader = new FXMLLoader(ExamApplication.class.getResource("manage_subjects_popup.fxml"));
+            Scene scene = new Scene(loader.load(), 640, 400);
+
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Manage Subjects");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private List<Exam> getScheduledExamsForCurrentTeacher() {
+        List<Exam> scheduledExams = new ArrayList<>();
+        try {
+            for (Exam exam : examDAO.getByTeacher(currentTeacherId)) {
+                if ("Scheduled".equals(exam.getStatus())) {
+                    scheduledExams.add(exam);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading scheduled exams: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return scheduledExams;
+    }
+
+    private void showManageQuestionsWindow(Exam exam) {
+        try {
+            FXMLLoader loader = new FXMLLoader(ExamApplication.class.getResource("manage_questions_popup.fxml"));
+            Scene scene = new Scene(loader.load(), 700, 460);
+            ManageQuestionsController controller = loader.getController();
+            controller.setExam(exam);
+
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Manage Questions - " + exam.getExamTitle());
+            stage.initModality(Modality.APPLICATION_MODAL);
+            if (welcomeLabel.getScene() != null) {
+                stage.initOwner(welcomeLabel.getScene().getWindow());
+            }
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
