@@ -1,12 +1,13 @@
 package com.xuka.exam.dao;
 
+import java.util.List;
+
 import com.xuka.exam.config.HibernateUtil;
 import com.xuka.exam.models.ExamAttempt;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-
-import java.util.List;
 
 /**
  * Data Access Object for ExamAttempt entity
@@ -206,6 +207,129 @@ public class ExamAttemptDAO {
             TypedQuery<ExamAttempt> query = em.createQuery("FROM ExamAttempt WHERE exam.examId = :examId AND status = 'In Progress'", ExamAttempt.class);
             query.setParameter("examId", examId);
             return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get all attempts for a teacher's exams
+     *
+     * @param teacherId Teacher user info ID
+     * @return List of all attempts for teacher's exams
+     */
+    public List<ExamAttempt> getAttemptsByTeacher(int teacherId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<ExamAttempt> query = em.createQuery(
+                "FROM ExamAttempt ea WHERE ea.exam.teacher.ucInfoId = :teacherId ORDER BY ea.startTime DESC",
+                ExamAttempt.class
+            );
+            query.setParameter("teacherId", teacherId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get recent attempts for a teacher's exams
+     *
+     * @param teacherId Teacher user info ID
+     * @param limit Number of recent attempts to retrieve
+     * @return List of recent attempts
+     */
+    public List<ExamAttempt> getRecentAttemptsByTeacher(int teacherId, int limit) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<ExamAttempt> query = em.createQuery(
+                "FROM ExamAttempt ea WHERE ea.exam.teacher.ucInfoId = :teacherId ORDER BY ea.startTime DESC",
+                ExamAttempt.class
+            );
+            query.setParameter("teacherId", teacherId);
+            query.setMaxResults(limit);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get average score for a teacher's exams
+     *
+     * @param teacherId Teacher user info ID
+     * @return Average score or 0 if no attempts
+     */
+    public double getAverageScoreByTeacher(int teacherId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<Double> query = em.createQuery(
+                "SELECT AVG(ea.score) FROM ExamAttempt ea WHERE ea.exam.teacher.ucInfoId = :teacherId AND ea.status = 'Completed'",
+                Double.class
+            );
+            query.setParameter("teacherId", teacherId);
+            Double result = query.getSingleResult();
+            return result != null ? result : 0.0;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get count of completed attempts for a teacher
+     *
+     * @param teacherId Teacher user info ID
+     * @return Count of completed attempts
+     */
+    public long getCompletedAttemptsCountByTeacher(int teacherId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(ea) FROM ExamAttempt ea WHERE ea.exam.teacher.ucInfoId = :teacherId AND ea.status = 'Completed'",
+                Long.class
+            );
+            query.setParameter("teacherId", teacherId);
+            return query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get count of in-progress attempts for a teacher
+     *
+     * @param teacherId Teacher user info ID
+     * @return Count of in-progress attempts
+     */
+    public long getInProgressAttemptsCountByTeacher(int teacherId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(ea) FROM ExamAttempt ea WHERE ea.exam.teacher.ucInfoId = :teacherId AND ea.status = 'In Progress'",
+                Long.class
+            );
+            query.setParameter("teacherId", teacherId);
+            return query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get total unique students who took exams for a teacher
+     *
+     * @param teacherId Teacher user info ID
+     * @return Count of unique students
+     */
+    public long getUniqueStudentsCountByTeacher(int teacherId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(DISTINCT ea.student.ucInfoId) FROM ExamAttempt ea WHERE ea.exam.teacher.ucInfoId = :teacherId",
+                Long.class
+            );
+            query.setParameter("teacherId", teacherId);
+            return query.getSingleResult();
         } finally {
             em.close();
         }

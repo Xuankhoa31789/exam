@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.xuka.exam.controller.TeacherDashboardController">
+    <top>
+        <VBox prefHeight="120.0" prefWidth="1400.0" style="-fx-background-color: #2c3e50; -fx-padding: 15;" spacing="10">
+            <HBox spacing="20" alignment="TOP_LEFT">
+                <VBox spacing="5">
+                    <Label fx:id="welcomeLabel" text="Teacher Dashboard" textFill="WHITE">
+                        <font>
+                            <Font name="System Bold" size="28.0" />
+                        </font>
+                    </Label>
+                    <Label fx:id="dateTimeLabel" text="Loading..." textFill="#b0bec5" />
+                </VBox>
+            </HBox>
+            <HBox spacing="10">
+                <Button fx:id="manageExamsBtn" text="📋 Manage Exams" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageExamsButtonAction" />
+                <Button fx:id="manageSubjectsBtn" text="📚 Manage Subjects" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #388e3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#onManageSubjectsButtonAction" />
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-padding: 10;">
+            <VBox spacing="20" style="-fx-padding: 15;">
+                <!-- Summary Cards Row -->
+                <HBox spacing="15">
+                    <!-- Total Exams Card -->
+                    <VBox prefWidth="200.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f5f5f5; -fx-padding: 15;">
+                        <Label text="Total Exams" style="-fx-text-fill: #666666;">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="totalExamsLabel" text="0" style="-fx-text-fill: #1976d2;">
+                            <font>
+                                <Font name="System Bold" size="32.0" />
+                            </font>
+                        </Label>
+                    </VBox>
+
+                    <!-- Completed Exams Card -->
+                    <VBox prefWidth="200.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f5f5f5; -fx-padding: 15;">
+                        <Label text="Completed Exams" style="-fx-text-fill: #666666;">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="completedExamsLabel" text="0" style="-fx-text-fill: #388e3c;">
+                            <font>
+                                <Font name="System Bold" size="32.0" />
+                            </font>
+                        </Label>
+                    </VBox>
+
+                    <!-- Scheduled Exams Card -->
+                    <VBox prefWidth="200.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f5f5f5; -fx-padding: 15;">
+                        <Label text="Scheduled Exams" style="-fx-text-fill: #666666;">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="scheduledExamsLabel" text="0" style="-fx-text-fill: #f57c00;">
+                            <font>
+                                <Font name="System Bold" size="32.0" />
+                            </font>
+                        </Label>
+                    </VBox>
+
+                    <!-- Average Score Card -->
+                    <VBox prefWidth="200.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f5f5f5; -fx-padding: 15;">
+                        <Label text="Average Score" style="-fx-text-fill: #666666;">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="avgScoreLabel" text="0.0" style="-fx-text-fill: #d32f2f;">
+                            <font>
+                                <Font name="System Bold" size="32.0" />
+                            </font>
+                        </Label>
+                    </VBox>
+
+                    <!-- Active Students Card -->
+                    <VBox prefWidth="200.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f5f5f5; -fx-padding: 15;">
+                        <Label text="Active Students" style="-fx-text-fill: #666666;">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="activeStudentsLabel" text="0" style="-fx-text-fill: #7b1fa2;">
+                            <font>
+                                <Font name="System Bold" size="32.0" />
+                            </font>
+                        </Label>
+                    </VBox>
+                </HBox>
+
+                <!-- Charts Row 1 -->
+                <HBox spacing="15">
+                    <!-- Pie Chart - Exam Status Distribution -->
+                    <VBox prefWidth="450.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: white; -fx-padding: 15;">
+                        <Label text="Exam Status Distribution" style="-fx-text-fill: #333333;">
+                            <font>
+                                <Font name="System Bold" size="14.0" />
+                            </font>
+                        </Label>
+                        <PieChart fx:id="examStatusChart" legendSide="BOTTOM" prefHeight="300.0" prefWidth="300.0" />
+                    </VBox>
+
+                    <!-- Bar Chart - Exam Performance -->
+                    <VBox prefWidth="900.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: white; -fx-padding: 15;">
+                        <Label text="Recent Exam Performance" style="-fx-text-fill: #333333;">
+                            <font>
+                                <Font name="System Bold" size="14.0" />
+                            </font>
+                        </Label>
+                        <BarChart fx:id="performanceChart" categoryGap="10.0" prefHeight="300.0" prefWidth="500.0">
+                            <xAxis>
+                                <CategoryAxis side="BOTTOM" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis forceZeroInRange="true" side="LEFT" />
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+                </HBox>
+
+                <!-- Recent Attempts Table -->
+                <VBox spacing="10" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: white; -fx-padding: 15;">
+                    <Label text="Recent Exam Attempts" style="-fx-text-fill: #333333;">
+                        <font>
+                            <Font name="System Bold" size="14.0" />
+                        </font>
+                    </Label>
+                    <TableView fx:id="attemptsTable" prefHeight="250.0" prefWidth="1350.0">
+                        <columns>
+                            <TableColumn fx:id="studentNameColumn" minWidth="150.0" prefWidth="150.0" text="Student Name" />
+                            <TableColumn fx:id="examNameColumn" minWidth="200.0" prefWidth="200.0" text="Exam Name" />
+                            <TableColumn fx:id="startTimeColumn" minWidth="150.0" prefWidth="150.0" text="Start Time" />
+                            <TableColumn fx:id="endTimeColumn" minWidth="150.0" prefWidth="150.0" text="End Time" />
+                            <TableColumn fx:id="scoreColumn" minWidth="80.0" prefWidth="80.0" text="Score" />
+                            <TableColumn fx:id="statusColumn" minWidth="100.0" prefWidth="100.0" text="Status" />
+                            <TableColumn fx:id="durationColumn" minWidth="100.0" prefWidth="100.0" text="Duration" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

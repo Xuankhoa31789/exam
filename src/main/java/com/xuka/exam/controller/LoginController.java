@@ -83,7 +83,29 @@ public class LoginController {
         messageLabel.setStyle("-fx-text-fill: green;");
         System.out.println("User " + username + " logged in successfully as " + roleName);
 
-        // TODO: Navigate to main dashboard/screen based on role
+        // Navigate to appropriate dashboard based on role
+        try {
+            if (userAccount.getRole() == 1) {
+                // Teacher dashboard
+                FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("teacher_dashboard.fxml"));
+                Scene scene = new Scene(fxmlLoader.load(), 1400, 900);
+                TeacherDashboardController controller = fxmlLoader.getController();
+                controller.setCurrentTeacherId(userInfo.getUcInfoId());
+                controller.setWelcomeMessage(userInfo.getFullName());
+                Stage stage = (Stage) usernameField.getScene().getWindow();
+                stage.setTitle("Teacher Dashboard - " + userInfo.getFullName());
+                stage.setScene(scene);
+                stage.setMaximized(true);
+            } else {
+                // Student dashboard - to be implemented
+                messageLabel.setText("Student dashboard not yet implemented.");
+                messageLabel.setStyle("-fx-text-fill: orange;");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            messageLabel.setText("Error loading dashboard.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+        }
     }
 
     /**
