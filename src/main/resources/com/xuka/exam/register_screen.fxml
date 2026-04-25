@@ -16,15 +16,24 @@
             <Separator />
             <Label text="Username:" />
             <TextField fx:id="usernameField" promptText="Username" onAction="#onUsernameAction" />
+            <Label text="Full Name:" />
+            <TextField fx:id="fullNameField" promptText="Full Name" onAction="#onFullNameAction" />
             <Label text="Email:" />
             <TextField fx:id="emailField" promptText="Email" onAction="#onEmailAction" />
             <Label text="Phone:" />
             <TextField fx:id="phoneField" promptText="Phone" onAction="#onPhoneAction" />
+            <Label text="Department:" />
+            <TextField fx:id="departmentField" promptText="Department" onAction="#onDepartmentAction" />
             <Label text="Date of Birth:" />
             <HBox spacing="5.0">
                 <ComboBox fx:id="dayComboBox" promptText="Day" prefWidth="60" />
                 <ComboBox fx:id="monthComboBox" promptText="Month" prefWidth="80" />
                 <ComboBox fx:id="yearComboBox" promptText="Year" prefWidth="80" />
+            </HBox>
+            <Label text="Role:" />
+            <HBox spacing="15.0">
+                <RadioButton fx:id="studentRadioButton" text="Student" />
+                <RadioButton fx:id="teacherRadioButton" text="Teacher" />
             </HBox>
             <Label text="Password:" />
             <PasswordField fx:id="passwordField" promptText="Password" onAction="#onPasswordAction" />
