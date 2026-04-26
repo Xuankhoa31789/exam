@@ -98,6 +98,49 @@ public class UserAccountDAO {
     }
 
     /**
+     * Delete a user account and its linked user information in one transaction.
+     *
+     * @param ucId User account ID
+     * @return true if successful, false otherwise
+     */
+    public boolean deleteAccountWithUserInfo(int ucId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            UserAccount userAccount = em.find(UserAccount.class, ucId);
+            if (userAccount == null) {
+                transaction.rollback();
+                return false;
+            }
+
+            TypedQuery<com.xuka.exam.models.UserInfo> query = em.createQuery(
+                "FROM UserInfo ui WHERE ui.userAccount.ucId = :ucId",
+                com.xuka.exam.models.UserInfo.class
+            );
+            query.setParameter("ucId", ucId);
+            List<com.xuka.exam.models.UserInfo> userInfos = query.getResultList();
+            for (com.xuka.exam.models.UserInfo userInfo : userInfos) {
+                em.remove(userInfo);
+            }
+            em.flush();
+
+            em.remove(userAccount);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            System.err.println("Error deleting user account with user info: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
      * Get user account by ID
      *
      * @param ucId User account ID

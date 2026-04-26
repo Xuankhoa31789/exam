@@ -71,7 +71,7 @@ public class SubjectRegistrationDAO {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            System.err.println("Error registering subject by IDs: " + e.getMessage());
+            System.err.println("Error registerings" + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
