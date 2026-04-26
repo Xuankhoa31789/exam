@@ -562,7 +562,7 @@ public class TeacherDashboardController implements Initializable {
         }
 
         int accountId = teacherInfo.getUserAccount().getUcId();
-        if (!userAccountDAO.deleteAccountWithUserInfo(accountId)) {
+        if (!userAccountDAO.delete(accountId)) {
             showAlert(Alert.AlertType.ERROR, "Delete failed", "Could not delete the account.");
             return;
         }
@@ -790,7 +790,7 @@ public class TeacherDashboardController implements Initializable {
     private void redirectToLogin() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("login_screen.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 400, 500);
+            Scene scene = new Scene(fxmlLoader.load(), 600, 400);
             Stage stage = (Stage) welcomeLabel.getScene().getWindow();
             stage.setTitle("Login");
             stage.setScene(scene);

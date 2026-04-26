@@ -1,5 +1,6 @@
 package com.xuka.exam.controller;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,37 +14,49 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import com.xuka.exam.ExamApplication;
 import com.xuka.exam.dao.ExamAttemptDAO;
 import com.xuka.exam.dao.ExamDAO;
 import com.xuka.exam.dao.ExamQuestionDAO;
 import com.xuka.exam.dao.SubjectDAO;
 import com.xuka.exam.dao.SubjectRegistrationDAO;
+import com.xuka.exam.dao.UserAccountDAO;
+import com.xuka.exam.dao.UserInfoDAO;
 import com.xuka.exam.models.Exam;
 import com.xuka.exam.models.ExamAttempt;
 import com.xuka.exam.models.ExamQuestion;
 import com.xuka.exam.models.Question;
 import com.xuka.exam.models.Subject;
 import com.xuka.exam.models.SubjectRegistration;
+import com.xuka.exam.models.UserAccount;
+import com.xuka.exam.models.UserInfo;
+import com.xuka.exam.util.PasswordUtil;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -123,6 +136,8 @@ public class StudentDashboardController implements Initializable {
     private ExamDAO examDAO;
     private ExamQuestionDAO examQuestionDAO;
     private ExamAttemptDAO examAttemptDAO;
+    private UserInfoDAO userInfoDAO;
+    private UserAccountDAO userAccountDAO;
     private int currentStudentId;
     private Integer selectedSubjectId;
 
@@ -133,6 +148,8 @@ public class StudentDashboardController implements Initializable {
         examDAO = new ExamDAO();
         examQuestionDAO = new ExamQuestionDAO();
         examAttemptDAO = new ExamAttemptDAO();
+        userInfoDAO = new UserInfoDAO();
+        userAccountDAO = new UserAccountDAO();
 
         initializeTableColumns();
         updateDateTime();
@@ -265,6 +282,206 @@ public class StudentDashboardController implements Initializable {
         }
 
         showTakeExamWindow(selectedExam);
+    }
+
+    @FXML
+    private void onProfileMenuAction() {
+        UserInfo studentInfo = getCurrentStudentInfo();
+        if (studentInfo == null) {
+            showAlert(Alert.AlertType.ERROR, "Profile unavailable", "Could not load student profile.");
+            return;
+        }
+
+        UserAccount account = studentInfo.getUserAccount();
+        GridPane profileGrid = createFormGrid();
+        addReadOnlyRow(profileGrid, 0, "Username", account == null ? "N/A" : account.getUsername());
+        addReadOnlyRow(profileGrid, 1, "Full Name", studentInfo.getFullName());
+        addReadOnlyRow(profileGrid, 2, "Email", studentInfo.getEmail());
+        addReadOnlyRow(profileGrid, 3, "Phone", studentInfo.getPhone());
+        addReadOnlyRow(profileGrid, 4, "Date of Birth", studentInfo.getDateOfBirth() == null ? "N/A" : studentInfo.getDateOfBirth().toString());
+        addReadOnlyRow(profileGrid, 5, "Department", studentInfo.getDepartment());
+        addReadOnlyRow(profileGrid, 6, "Role", "Student");
+
+        showContentWindow("Profile", profileGrid, 420, 330);
+    }
+
+    @FXML
+    private void onEditProfileMenuAction() {
+        UserInfo studentInfo = getCurrentStudentInfo();
+        if (studentInfo == null || studentInfo.getUserAccount() == null) {
+            showAlert(Alert.AlertType.ERROR, "Edit unavailable", "Could not load student account.");
+            return;
+        }
+
+        UserAccount account = studentInfo.getUserAccount();
+        TextField usernameField = new TextField(account.getUsername());
+        TextField fullNameField = new TextField(studentInfo.getFullName());
+        TextField emailField = new TextField(studentInfo.getEmail());
+        TextField phoneField = new TextField(studentInfo.getPhone() == null ? "" : studentInfo.getPhone());
+        TextField departmentField = new TextField(studentInfo.getDepartment() == null ? "" : studentInfo.getDepartment());
+        DatePicker dobPicker = new DatePicker(studentInfo.getDateOfBirth());
+
+        GridPane form = createFormGrid();
+        addEditableRow(form, 0, "Username", usernameField);
+        addEditableRow(form, 1, "Full Name", fullNameField);
+        addEditableRow(form, 2, "Email", emailField);
+        addEditableRow(form, 3, "Phone", phoneField);
+        addEditableRow(form, 4, "Date of Birth", dobPicker);
+        addEditableRow(form, 5, "Department", departmentField);
+
+        Stage stage = createModalStage("Edit Profile");
+        Button saveButton = new Button("Save");
+        saveButton.setDefaultButton(true);
+        saveButton.setOnAction(event -> {
+            String username = usernameField.getText() == null ? "" : usernameField.getText().trim();
+            String fullName = fullNameField.getText() == null ? "" : fullNameField.getText().trim();
+            String email = emailField.getText() == null ? "" : emailField.getText().trim();
+
+            if (username.isEmpty() || fullName.isEmpty() || email.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Missing fields", "Username, full name, and email are required.");
+                return;
+            }
+
+            UserAccount existingAccount = userAccountDAO.getByUsername(username);
+            if (existingAccount != null && existingAccount.getUcId() != account.getUcId()) {
+                showAlert(Alert.AlertType.WARNING, "Username exists", "Please choose another username.");
+                return;
+            }
+
+            account.setUsername(username);
+            studentInfo.setFullName(fullName);
+            studentInfo.setEmail(email);
+            studentInfo.setPhone(phoneField.getText());
+            studentInfo.setDateOfBirth(dobPicker.getValue());
+            studentInfo.setDepartment(departmentField.getText());
+
+            boolean accountUpdated = userAccountDAO.update(account);
+            boolean infoUpdated = userInfoDAO.update(studentInfo);
+            if (!accountUpdated || !infoUpdated) {
+                showAlert(Alert.AlertType.ERROR, "Save failed", "Could not update profile.");
+                return;
+            }
+
+            setWelcomeMessage(fullName);
+            showAlert(Alert.AlertType.INFORMATION, "Profile updated", "Your profile was updated.");
+            stage.close();
+        });
+
+        Button closeButton = new Button("Close");
+        closeButton.setCancelButton(true);
+        closeButton.setOnAction(event -> stage.close());
+        HBox actions = new HBox(10, saveButton, closeButton);
+        actions.setStyle("-fx-alignment: center-right;");
+
+        VBox content = new VBox(12, form, actions);
+        content.setPadding(new Insets(18));
+        stage.setScene(new Scene(content, 460, 360));
+        stage.showAndWait();
+    }
+
+    @FXML
+    private void onChangePasswordMenuAction() {
+        UserInfo studentInfo = getCurrentStudentInfo();
+        if (studentInfo == null || studentInfo.getUserAccount() == null) {
+            showAlert(Alert.AlertType.ERROR, "Password unavailable", "Could not load student account.");
+            return;
+        }
+
+        UserAccount account = studentInfo.getUserAccount();
+        PasswordField currentPasswordField = new PasswordField();
+        PasswordField newPasswordField = new PasswordField();
+        PasswordField confirmPasswordField = new PasswordField();
+        currentPasswordField.setPromptText("Current password");
+        newPasswordField.setPromptText("New password");
+        confirmPasswordField.setPromptText("Confirm new password");
+
+        GridPane form = createFormGrid();
+        addEditableRow(form, 0, "Current Password", currentPasswordField);
+        addEditableRow(form, 1, "New Password", newPasswordField);
+        addEditableRow(form, 2, "Confirm Password", confirmPasswordField);
+
+        Stage stage = createModalStage("Change Password");
+        Button saveButton = new Button("Change Password");
+        saveButton.setDefaultButton(true);
+        saveButton.setOnAction(event -> {
+            String currentPassword = currentPasswordField.getText();
+            String newPassword = newPasswordField.getText();
+            String confirmPassword = confirmPasswordField.getText();
+
+            if (currentPassword == null || newPassword == null || confirmPassword == null ||
+                currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Missing fields", "Please fill in all password fields.");
+                return;
+            }
+            if (!PasswordUtil.verifyPassword(currentPassword, account.getSalt(), account.getPwdHash())) {
+                showAlert(Alert.AlertType.WARNING, "Wrong password", "Current password is incorrect.");
+                return;
+            }
+            if (!newPassword.equals(confirmPassword)) {
+                showAlert(Alert.AlertType.WARNING, "Password mismatch", "New passwords do not match.");
+                return;
+            }
+            if (newPassword.length() < 6) {
+                showAlert(Alert.AlertType.WARNING, "Weak password", "Password must be at least 6 characters long.");
+                return;
+            }
+            if (!showConfirmation("Change Password", "Do you want to change your password?")) {
+                return;
+            }
+
+            String salt = PasswordUtil.generateSalt();
+            account.setSalt(salt);
+            account.setPwdHash(PasswordUtil.hashPassword(newPassword, salt));
+            if (!userAccountDAO.update(account)) {
+                showAlert(Alert.AlertType.ERROR, "Change failed", "Could not update password.");
+                return;
+            }
+
+            showAlert(Alert.AlertType.INFORMATION, "Password changed", "Your password was changed.");
+            stage.close();
+        });
+
+        Button closeButton = new Button("Close");
+        closeButton.setCancelButton(true);
+        closeButton.setOnAction(event -> stage.close());
+        HBox actions = new HBox(10, saveButton, closeButton);
+        actions.setStyle("-fx-alignment: center-right;");
+
+        VBox content = new VBox(12, form, actions);
+        content.setPadding(new Insets(18));
+        stage.setScene(new Scene(content, 460, 260));
+        stage.showAndWait();
+    }
+
+    @FXML
+    private void onDeleteAccountMenuAction() {
+        UserInfo studentInfo = getCurrentStudentInfo();
+        if (studentInfo == null || studentInfo.getUserAccount() == null) {
+            showAlert(Alert.AlertType.ERROR, "Delete unavailable", "Could not load student account.");
+            return;
+        }
+
+        boolean confirmed = showConfirmation(
+            "Delete Account",
+            "Do you want to delete this account? This may remove subject registrations, attempts, and scores connected to this student."
+        );
+        if (!confirmed) {
+            return;
+        }
+
+        int accountId = studentInfo.getUserAccount().getUcId();
+        if (!userAccountDAO.deleteAccountWithUserInfo(accountId)) {
+            showAlert(Alert.AlertType.ERROR, "Delete failed", "Could not delete the account.");
+            return;
+        }
+
+        showAlert(Alert.AlertType.INFORMATION, "Account deleted", "Your account was deleted.");
+        redirectToLogin();
+    }
+
+    @FXML
+    private void onLogoutMenuAction() {
+        redirectToLogin();
     }
 
     private void loadDashboardData() {
@@ -660,6 +877,77 @@ public class StudentDashboardController implements Initializable {
         }
         alert.getDialogPane().lookupButton(ButtonType.OK).setStyle("-fx-font-weight: bold; -fx-text-fill: #c62828;");
         return alert.showAndWait().filter(buttonType -> buttonType == ButtonType.OK).isPresent();
+    }
+
+    private UserInfo getCurrentStudentInfo() {
+        try {
+            return userInfoDAO.getById(currentStudentId);
+        } catch (Exception e) {
+            System.err.println("Error loading student info: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private GridPane createFormGrid() {
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(10);
+        return grid;
+    }
+
+    private void addReadOnlyRow(GridPane grid, int row, String label, String value) {
+        Label labelNode = new Label(label + ":");
+        labelNode.setStyle("-fx-font-weight: bold;");
+        Label valueNode = new Label(value == null || value.isBlank() ? "N/A" : value);
+        valueNode.setWrapText(true);
+        grid.add(labelNode, 0, row);
+        grid.add(valueNode, 1, row);
+    }
+
+    private void addEditableRow(GridPane grid, int row, String label, Node input) {
+        Label labelNode = new Label(label + ":");
+        labelNode.setStyle("-fx-font-weight: bold;");
+        grid.add(labelNode, 0, row);
+        grid.add(input, 1, row);
+    }
+
+    private Stage createModalStage(String title) {
+        Stage stage = new Stage();
+        stage.setTitle(title);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        if (welcomeLabel.getScene() != null) {
+            stage.initOwner(welcomeLabel.getScene().getWindow());
+        }
+        return stage;
+    }
+
+    private void showContentWindow(String title, Node contentNode, int width, int height) {
+        Stage stage = createModalStage(title);
+        Button closeButton = new Button("Close");
+        closeButton.setCancelButton(true);
+        closeButton.setOnAction(event -> stage.close());
+
+        HBox actions = new HBox(closeButton);
+        actions.setStyle("-fx-alignment: center-right;");
+        VBox content = new VBox(14, contentNode, actions);
+        content.setPadding(new Insets(18));
+        stage.setScene(new Scene(content, width, height));
+        stage.showAndWait();
+    }
+
+    private void redirectToLogin() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("login_screen.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 400, 500);
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+            stage.setTitle("Login");
+            stage.setScene(scene);
+            stage.setMaximized(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Logout failed", "Could not load login screen.");
+        }
     }
 
     private String getSubjectName(Exam exam) {

@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -23,6 +25,16 @@
                     </Label>
                     <Label fx:id="dateTimeLabel" text="Loading..." textFill="#cfd8dc" />
                 </VBox>
+                <VBox HBox.hgrow="ALWAYS" />
+                <MenuButton fx:id="settingsMenuButton" text="⚙ Settings" style="-fx-font-size: 12; -fx-padding: 8 12; -fx-background-color: #cfd8dc; -fx-text-fill: #263238; -fx-font-weight: bold; -fx-cursor: hand;">
+                    <items>
+                        <MenuItem text="Profile" onAction="#onProfileMenuAction" />
+                        <MenuItem text="Edit" onAction="#onEditProfileMenuAction" />
+                        <MenuItem text="Change Password" onAction="#onChangePasswordMenuAction" />
+                        <MenuItem text="Delete Account" onAction="#onDeleteAccountMenuAction" />
+                        <MenuItem text="Log Out" onAction="#onLogoutMenuAction" />
+                    </items>
+                </MenuButton>
             </HBox>
             <HBox spacing="10">
                 <Button fx:id="registerSubjectButton" onAction="#onRegisterSubjectButtonAction" style="-fx-font-size: 12; -fx-padding: 8 15; -fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Register Subject" />
