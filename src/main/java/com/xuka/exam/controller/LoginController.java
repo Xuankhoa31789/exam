@@ -97,9 +97,16 @@ public class LoginController {
                 stage.setScene(scene);
                 stage.setMaximized(true);
             } else {
-                // Student dashboard - to be implemented
-                messageLabel.setText("Student dashboard not yet implemented.");
-                messageLabel.setStyle("-fx-text-fill: orange;");
+                // Student dashboard
+                FXMLLoader fxmlLoader = new FXMLLoader(ExamApplication.class.getResource("student_dashboard.fxml"));
+                Scene scene = new Scene(fxmlLoader.load(), 1400, 900);
+                StudentDashboardController controller = fxmlLoader.getController();
+                controller.setCurrentStudentId(userInfo.getUcInfoId());
+                controller.setWelcomeMessage(userInfo.getFullName());
+                Stage stage = (Stage) usernameField.getScene().getWindow();
+                stage.setTitle("Student Dashboard - " + userInfo.getFullName());
+                stage.setScene(scene);
+                stage.setMaximized(true);
             }
         } catch (IOException e) {
             e.printStackTrace();
