@@ -1,9 +1,15 @@
 package com.xuka.exam.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import com.xuka.exam.config.HibernateUtil;
+import com.xuka.exam.models.Exam;
 import com.xuka.exam.models.ExamAttempt;
+import com.xuka.exam.models.Question;
+import com.xuka.exam.models.StudentAnswer;
+import com.xuka.exam.models.UserInfo;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -39,6 +45,65 @@ public class ExamAttemptDAO {
         } finally {
             em.close();
         }
+    }
+
+    /**
+     * Create a completed exam attempt with all submitted answers in one transaction.
+     *
+     * @param studentId Student user info ID
+     * @param examId Exam ID
+     * @param answersByQuestionId Submitted answers keyed by question ID
+     * @return true if successful, false otherwise
+     */
+    public boolean submitCompletedAttempt(int studentId, int examId, Map<Integer, String> answersByQuestionId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+
+            UserInfo student = em.getReference(UserInfo.class, studentId);
+            Exam exam = em.getReference(Exam.class, examId);
+            ExamAttempt attempt = new ExamAttempt(LocalDateTime.now(), student, exam);
+            attempt.setEndTime(LocalDateTime.now());
+            attempt.setStatus("Completed");
+            attempt.setScore(0);
+            em.persist(attempt);
+
+            int totalScore = 0;
+            for (Map.Entry<Integer, String> entry : answersByQuestionId.entrySet()) {
+                Question question = em.find(Question.class, entry.getKey());
+                if (question == null) {
+                    continue;
+                }
+
+                String answerText = entry.getValue() == null ? "" : entry.getValue().trim();
+                int obtainedMarks = calculateMarks(question, answerText);
+                totalScore += obtainedMarks;
+                em.persist(new StudentAnswer(answerText, obtainedMarks, attempt, question));
+            }
+
+            attempt.setScore(totalScore);
+            em.merge(attempt);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            System.err.println("Error submitting exam attempt: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    private int calculateMarks(Question question, String answerText) {
+        String correctAnswer = question.getCorrectAnswer();
+        if (correctAnswer == null || correctAnswer.isBlank()) {
+            return 0;
+        }
+        return correctAnswer.trim().equalsIgnoreCase(answerText) ? question.getMarks() : 0;
     }
 
     /**

@@ -43,6 +43,43 @@ public class SubjectRegistrationDAO {
     }
 
     /**
+     * Register a user for a subject by ID.
+     *
+     * @param subjectId Subject ID
+     * @param ucInfoId User info ID
+     * @return true if successful or already registered, false otherwise
+     */
+    public boolean registerByIds(int subjectId, int ucInfoId) {
+        EntityManager em = HibernateUtil.getEntityManagerFactory().createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            SubjectRegistrationId id = new SubjectRegistrationId(subjectId, ucInfoId);
+            SubjectRegistration existingRegistration = em.find(SubjectRegistration.class, id);
+            if (existingRegistration != null) {
+                transaction.commit();
+                return true;
+            }
+
+            SubjectRegistration registration = new SubjectRegistration();
+            registration.setSubject(em.getReference(com.xuka.exam.models.Subject.class, subjectId));
+            registration.setUserInfo(em.getReference(com.xuka.exam.models.UserInfo.class, ucInfoId));
+            em.persist(registration);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            System.err.println("Error registering subject by IDs: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
      * Unregister a user from a subject
      *
      * @param subjectId Subject ID
