@@ -219,7 +219,8 @@ public class ManageQuestionsController {
         VBox answerBox = new VBox(10);
         answerBox.setPadding(new Insets(4, 0, 0, 0));
 
-        Runnable rebuildAnswerBox = () -> rebuildAnswerBox(answerBox, typeComboBox.getValue(), question);
+        Label questionLabel = new Label("Question");
+        Runnable rebuildAnswerBox = () -> rebuildAnswerBox(answerBox, typeComboBox.getValue(), question, questionLabel, questionTextArea);
         typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> rebuildAnswerBox.run());
         rebuildAnswerBox.run();
 
@@ -237,7 +238,7 @@ public class ManageQuestionsController {
         inputColumn.setHgrow(Priority.ALWAYS);
         form.getColumnConstraints().addAll(labelColumn, inputColumn);
 
-        form.add(new Label("Question"), 0, 0);
+        form.add(questionLabel, 0, 0);
         form.add(questionTextArea, 1, 0);
         form.add(new Label("Type"), 0, 1);
         form.add(typeComboBox, 1, 1);
@@ -275,16 +276,40 @@ public class ManageQuestionsController {
         popup.showAndWait();
     }
 
-    private void rebuildAnswerBox(VBox answerBox, String questionType, Question question) {
+    private void rebuildAnswerBox(VBox answerBox, String questionType, Question question, Label questionLabel, TextArea questionTextArea) {
         answerBox.getChildren().clear();
+        boolean batchWrittenAdd = question == null && WRITTEN.equals(questionType);
+        questionLabel.setVisible(!batchWrittenAdd);
+        questionLabel.setManaged(!batchWrittenAdd);
+        questionTextArea.setVisible(!batchWrittenAdd);
+        questionTextArea.setManaged(!batchWrittenAdd);
 
         if (WRITTEN.equals(questionType)) {
+            if (batchWrittenAdd) {
+                VBox writtenQuestionsBox = new VBox(10);
+                writtenQuestionsBox.setId("writtenQuestionsBox");
+                addWrittenQuestionField(writtenQuestionsBox, "", "");
+
+                Button addQuestionButton = new Button("Add Question");
+                addQuestionButton.setOnAction(event -> addWrittenQuestionField(writtenQuestionsBox, "", ""));
+
+                answerBox.getChildren().addAll(
+                        new Label("Written Questions"),
+                        writtenQuestionsBox,
+                        addQuestionButton
+                );
+                return;
+            }
+
             TextArea answerArea = new TextArea(question == null ? "" : safe(question.getCorrectAnswer()));
             answerArea.setId("writtenAnswerArea");
             answerArea.setPromptText("Correct answer");
             answerArea.setPrefRowCount(3);
             answerArea.setWrapText(true);
-            answerBox.getChildren().addAll(new Label("Answer"), answerArea);
+            answerBox.getChildren().addAll(
+                    new Label("Answer"),
+                    answerArea
+            );
             return;
         }
 
@@ -349,6 +374,54 @@ public class ManageQuestionsController {
         refreshChoiceLabels(choicesBox);
     }
 
+    private void addWrittenQuestionField(VBox writtenQuestionsBox, String questionValue, String answerValue) {
+        Label label = new Label((writtenQuestionsBox.getChildren().size() + 1) + ".");
+        label.setMinWidth(24);
+
+        TextArea questionArea = new TextArea(questionValue);
+        questionArea.setPromptText("Question text");
+        questionArea.setPrefRowCount(2);
+        questionArea.setWrapText(true);
+        HBox.setHgrow(questionArea, Priority.ALWAYS);
+
+        TextArea answerArea = new TextArea(answerValue);
+        answerArea.setPromptText("Correct answer");
+        answerArea.setPrefRowCount(2);
+        answerArea.setWrapText(true);
+        HBox.setHgrow(answerArea, Priority.ALWAYS);
+
+        Button removeButton = new Button("-");
+        removeButton.setOnAction(event -> {
+            if (writtenQuestionsBox.getChildren().size() <= 1) {
+                showAlert(Alert.AlertType.WARNING, "Not enough questions", "Please keep at least one written question.");
+                return;
+            }
+            writtenQuestionsBox.getChildren().remove(removeButton.getParent());
+            refreshWrittenQuestionLabels(writtenQuestionsBox);
+        });
+
+        VBox fields = new VBox(6, questionArea, answerArea);
+        HBox.setHgrow(fields, Priority.ALWAYS);
+
+        HBox row = new HBox(8, label, fields, removeButton);
+        row.setStyle("-fx-alignment: top-left;");
+        writtenQuestionsBox.getChildren().add(row);
+        refreshWrittenQuestionLabels(writtenQuestionsBox);
+    }
+
+    private void refreshWrittenQuestionLabels(VBox writtenQuestionsBox) {
+        for (int i = 0; i < writtenQuestionsBox.getChildren().size(); i++) {
+            HBox row = (HBox) writtenQuestionsBox.getChildren().get(i);
+            Label label = (Label) row.getChildren().get(0);
+            VBox fields = (VBox) row.getChildren().get(1);
+            TextArea questionArea = (TextArea) fields.getChildren().get(0);
+            TextArea answerArea = (TextArea) fields.getChildren().get(1);
+            label.setText((i + 1) + ".");
+            questionArea.setPromptText("Question text " + (i + 1));
+            answerArea.setPromptText("Correct answer " + (i + 1));
+        }
+    }
+
     private void refreshChoiceLabels(VBox choicesBox) {
         for (int i = 0; i < choicesBox.getChildren().size(); i++) {
             HBox row = (HBox) choicesBox.getChildren().get(i);
@@ -373,14 +446,33 @@ public class ManageQuestionsController {
         String prompt = questionTextArea.getText() == null ? "" : questionTextArea.getText().trim();
         String questionType = typeComboBox.getValue();
 
-        if (prompt.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Missing question", "Please enter the question text.");
-            questionTextArea.requestFocus();
+        int marks = parsePositiveInt(marksField, "Marks");
+        if (marks <= 0) {
             return false;
         }
 
-        int marks = parsePositiveInt(marksField, "Marks");
-        if (marks <= 0) {
+        if (question == null && WRITTEN.equals(questionType)) {
+            VBox writtenQuestionsBox = (VBox) answerBox.lookup("#writtenQuestionsBox");
+            List<WrittenQuestionInput> writtenQuestions = readWrittenQuestions(writtenQuestionsBox);
+            if (writtenQuestions == null) {
+                return false;
+            }
+
+            int nextOrder = getNextQuestionOrder();
+            for (WrittenQuestionInput writtenQuestion : writtenQuestions) {
+                if (!saveNewQuestion(writtenQuestion.questionText(), questionType, marks, writtenQuestion.correctAnswer(), nextOrder)) {
+                    return false;
+                }
+                nextOrder++;
+            }
+
+            loadQuestions();
+            return true;
+        }
+
+        if (prompt.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Missing question", "Please enter the question text.");
+            questionTextArea.requestFocus();
             return false;
         }
 
@@ -412,19 +504,7 @@ public class ManageQuestionsController {
         }
 
         if (question == null) {
-            Question newQuestion = new Question(questionText, questionType, marks, correctAnswer, exam.getSubject());
-            if (!questionDAO.save(newQuestion)) {
-                showAlert(Alert.AlertType.ERROR, "Save failed", "Could not save the question. Please try again.");
-                return false;
-            }
-
-            int nextOrder = questionTable.getItems().stream()
-                    .map(ExamQuestion::getQuestionOrder)
-                    .max(Comparator.naturalOrder())
-                    .orElse(0) + 1;
-            if (!examQuestionDAO.saveByIds(exam.getExamId(), newQuestion.getQuestionId(), nextOrder)) {
-                questionDAO.delete(newQuestion.getQuestionId());
-                showAlert(Alert.AlertType.ERROR, "Save failed", "Could not attach the question to this exam.");
+            if (!saveNewQuestion(questionText, questionType, marks, correctAnswer, getNextQuestionOrder())) {
                 return false;
             }
         } else {
@@ -440,6 +520,59 @@ public class ManageQuestionsController {
 
         loadQuestions();
         return true;
+    }
+
+    private boolean saveNewQuestion(String questionText, String questionType, int marks, String correctAnswer, int questionOrder) {
+        Question newQuestion = new Question(questionText, questionType, marks, correctAnswer, exam.getSubject());
+        if (!questionDAO.save(newQuestion)) {
+            showAlert(Alert.AlertType.ERROR, "Save failed", "Could not save the question. Please try again.");
+            return false;
+        }
+
+        if (!examQuestionDAO.saveByIds(exam.getExamId(), newQuestion.getQuestionId(), questionOrder)) {
+            questionDAO.delete(newQuestion.getQuestionId());
+            showAlert(Alert.AlertType.ERROR, "Save failed", "Could not attach the question to this exam.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private int getNextQuestionOrder() {
+        return questionTable.getItems().stream()
+                .map(ExamQuestion::getQuestionOrder)
+                .max(Comparator.naturalOrder())
+                .orElse(0) + 1;
+    }
+
+    private List<WrittenQuestionInput> readWrittenQuestions(VBox writtenQuestionsBox) {
+        List<WrittenQuestionInput> writtenQuestions = new ArrayList<>();
+        for (int i = 0; i < writtenQuestionsBox.getChildren().size(); i++) {
+            HBox row = (HBox) writtenQuestionsBox.getChildren().get(i);
+            VBox fields = (VBox) row.getChildren().get(1);
+            TextArea questionArea = (TextArea) fields.getChildren().get(0);
+            TextArea answerArea = (TextArea) fields.getChildren().get(1);
+            String questionText = questionArea.getText() == null ? "" : questionArea.getText().trim();
+            String answer = answerArea.getText() == null ? "" : answerArea.getText().trim();
+            if (questionText.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Missing question", "Please fill in question " + (i + 1) + ".");
+                questionArea.requestFocus();
+                return null;
+            }
+            if (answer.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Missing answer", "Please fill in correct answer " + (i + 1) + ".");
+                answerArea.requestFocus();
+                return null;
+            }
+            writtenQuestions.add(new WrittenQuestionInput(questionText, answer));
+        }
+
+        if (writtenQuestions.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Missing question", "Please add at least one written question.");
+            return null;
+        }
+
+        return writtenQuestions;
     }
 
     private List<String> readChoices(VBox choicesBox) {
@@ -592,6 +725,9 @@ public class ManageQuestionsController {
             field.requestFocus();
             return -1;
         }
+    }
+
+    private record WrittenQuestionInput(String questionText, String correctAnswer) {
     }
 
     private String safe(String value) {
