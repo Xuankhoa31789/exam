@@ -794,6 +794,8 @@ public class TeacherDashboardController implements Initializable {
             Stage stage = (Stage) welcomeLabel.getScene().getWindow();
             stage.setTitle("Login");
             stage.setScene(scene);
+            stage.setWidth(400);
+            stage.setHeight(500);
             stage.setMaximized(false);
         } catch (IOException e) {
             e.printStackTrace();
