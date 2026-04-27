@@ -278,14 +278,14 @@ public class ManageQuestionsController {
 
     private void rebuildAnswerBox(VBox answerBox, String questionType, Question question, Label questionLabel, TextArea questionTextArea) {
         answerBox.getChildren().clear();
-        boolean batchWrittenAdd = question == null && WRITTEN.equals(questionType);
-        questionLabel.setVisible(!batchWrittenAdd);
-        questionLabel.setManaged(!batchWrittenAdd);
-        questionTextArea.setVisible(!batchWrittenAdd);
-        questionTextArea.setManaged(!batchWrittenAdd);
+        boolean batchAdd = question == null;
+        questionLabel.setVisible(!batchAdd);
+        questionLabel.setManaged(!batchAdd);
+        questionTextArea.setVisible(!batchAdd);
+        questionTextArea.setManaged(!batchAdd);
 
         if (WRITTEN.equals(questionType)) {
-            if (batchWrittenAdd) {
+            if (batchAdd) {
                 VBox writtenQuestionsBox = new VBox(10);
                 writtenQuestionsBox.setId("writtenQuestionsBox");
                 addWrittenQuestionField(writtenQuestionsBox, "", "");
@@ -309,6 +309,22 @@ public class ManageQuestionsController {
             answerBox.getChildren().addAll(
                     new Label("Answer"),
                     answerArea
+            );
+            return;
+        }
+
+        if (batchAdd) {
+            VBox multipleChoiceQuestionsBox = new VBox(12);
+            multipleChoiceQuestionsBox.setId("multipleChoiceQuestionsBox");
+            addMultipleChoiceQuestionField(multipleChoiceQuestionsBox, "", List.of("", ""), List.of());
+
+            Button addQuestionButton = new Button("Add Question");
+            addQuestionButton.setOnAction(event -> addMultipleChoiceQuestionField(multipleChoiceQuestionsBox, "", List.of("", ""), List.of()));
+
+            answerBox.getChildren().addAll(
+                    new Label("Multiple-choice Questions"),
+                    multipleChoiceQuestionsBox,
+                    addQuestionButton
             );
             return;
         }
@@ -409,6 +425,65 @@ public class ManageQuestionsController {
         refreshWrittenQuestionLabels(writtenQuestionsBox);
     }
 
+    private void addMultipleChoiceQuestionField(VBox multipleChoiceQuestionsBox, String questionValue, List<String> choices, List<String> selectedAnswers) {
+        Label label = new Label((multipleChoiceQuestionsBox.getChildren().size() + 1) + ".");
+        label.setMinWidth(24);
+
+        TextArea questionArea = new TextArea(questionValue);
+        questionArea.setPromptText("Question text");
+        questionArea.setPrefRowCount(2);
+        questionArea.setWrapText(true);
+
+        VBox choicesBox = new VBox(8);
+        choicesBox.setId("choicesBox");
+
+        List<String> questionChoices = choices == null || choices.size() < 2 ? List.of("", "") : choices;
+        List<String> selectedKeys = selectedAnswers == null ? List.of() : selectedAnswers;
+        for (int i = 0; i < questionChoices.size(); i++) {
+            addChoiceField(choicesBox, questionChoices.get(i), selectedKeys.contains(getChoiceLabel(i)));
+        }
+
+        Button addChoiceButton = new Button("Add Choice");
+        addChoiceButton.setOnAction(event -> {
+            if (choicesBox.getChildren().size() >= 26) {
+                showAlert(Alert.AlertType.WARNING, "Too many choices", "Multiple-choice questions can have up to 26 choices.");
+                return;
+            }
+            addChoiceField(choicesBox, "", false);
+        });
+
+        Button removeQuestionButton = new Button("-");
+        removeQuestionButton.setOnAction(event -> {
+            if (multipleChoiceQuestionsBox.getChildren().size() <= 1) {
+                showAlert(Alert.AlertType.WARNING, "Not enough questions", "Please keep at least one multiple-choice question.");
+                return;
+            }
+            multipleChoiceQuestionsBox.getChildren().remove(removeQuestionButton.getParent());
+            refreshMultipleChoiceQuestionLabels(multipleChoiceQuestionsBox);
+        });
+
+        VBox fields = new VBox(8, questionArea, new Label("Choices"), choicesBox, addChoiceButton);
+        HBox.setHgrow(fields, Priority.ALWAYS);
+
+        HBox row = new HBox(8, label, fields, removeQuestionButton);
+        row.setStyle("-fx-alignment: top-left;");
+        multipleChoiceQuestionsBox.getChildren().add(row);
+        refreshMultipleChoiceQuestionLabels(multipleChoiceQuestionsBox);
+    }
+
+    private void refreshMultipleChoiceQuestionLabels(VBox multipleChoiceQuestionsBox) {
+        for (int i = 0; i < multipleChoiceQuestionsBox.getChildren().size(); i++) {
+            HBox row = (HBox) multipleChoiceQuestionsBox.getChildren().get(i);
+            Label label = (Label) row.getChildren().get(0);
+            VBox fields = (VBox) row.getChildren().get(1);
+            TextArea questionArea = (TextArea) fields.getChildren().get(0);
+            VBox choicesBox = (VBox) fields.getChildren().get(2);
+            label.setText((i + 1) + ".");
+            questionArea.setPromptText("Question text " + (i + 1));
+            refreshChoiceLabels(choicesBox);
+        }
+    }
+
     private void refreshWrittenQuestionLabels(VBox writtenQuestionsBox) {
         for (int i = 0; i < writtenQuestionsBox.getChildren().size(); i++) {
             HBox row = (HBox) writtenQuestionsBox.getChildren().get(i);
@@ -461,6 +536,26 @@ public class ManageQuestionsController {
             int nextOrder = getNextQuestionOrder();
             for (WrittenQuestionInput writtenQuestion : writtenQuestions) {
                 if (!saveNewQuestion(writtenQuestion.questionText(), questionType, marks, writtenQuestion.correctAnswer(), nextOrder)) {
+                    return false;
+                }
+                nextOrder++;
+            }
+
+            loadQuestions();
+            return true;
+        }
+
+        if (question == null && MULTIPLE_CHOICE.equals(questionType)) {
+            VBox multipleChoiceQuestionsBox = (VBox) answerBox.lookup("#multipleChoiceQuestionsBox");
+            List<MultipleChoiceQuestionInput> multipleChoiceQuestions = readMultipleChoiceQuestions(multipleChoiceQuestionsBox);
+            if (multipleChoiceQuestions == null) {
+                return false;
+            }
+
+            int nextOrder = getNextQuestionOrder();
+            for (MultipleChoiceQuestionInput multipleChoiceQuestion : multipleChoiceQuestions) {
+                String questionText = buildMultipleChoiceQuestionText(multipleChoiceQuestion.questionText(), multipleChoiceQuestion.choices());
+                if (!saveNewQuestion(questionText, questionType, marks, multipleChoiceQuestion.correctAnswer(), nextOrder)) {
                     return false;
                 }
                 nextOrder++;
@@ -575,14 +670,55 @@ public class ManageQuestionsController {
         return writtenQuestions;
     }
 
+    private List<MultipleChoiceQuestionInput> readMultipleChoiceQuestions(VBox multipleChoiceQuestionsBox) {
+        List<MultipleChoiceQuestionInput> multipleChoiceQuestions = new ArrayList<>();
+        for (int i = 0; i < multipleChoiceQuestionsBox.getChildren().size(); i++) {
+            HBox row = (HBox) multipleChoiceQuestionsBox.getChildren().get(i);
+            VBox fields = (VBox) row.getChildren().get(1);
+            TextArea questionArea = (TextArea) fields.getChildren().get(0);
+            VBox choicesBox = (VBox) fields.getChildren().get(2);
+            String questionText = questionArea.getText() == null ? "" : questionArea.getText().trim();
+
+            if (questionText.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Missing question", "Please fill in multiple-choice question " + (i + 1) + ".");
+                questionArea.requestFocus();
+                return null;
+            }
+
+            List<String> choices = readChoices(choicesBox, "question " + (i + 1));
+            if (choices == null) {
+                return null;
+            }
+
+            String correctAnswer = readSelectedAnswerKeys(choicesBox, "question " + (i + 1));
+            if (correctAnswer == null) {
+                return null;
+            }
+
+            multipleChoiceQuestions.add(new MultipleChoiceQuestionInput(questionText, choices, correctAnswer));
+        }
+
+        if (multipleChoiceQuestions.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Missing question", "Please add at least one multiple-choice question.");
+            return null;
+        }
+
+        return multipleChoiceQuestions;
+    }
+
     private List<String> readChoices(VBox choicesBox) {
+        return readChoices(choicesBox, "");
+    }
+
+    private List<String> readChoices(VBox choicesBox, String context) {
         List<String> choices = new ArrayList<>();
         for (int i = 0; i < choicesBox.getChildren().size(); i++) {
             HBox row = (HBox) choicesBox.getChildren().get(i);
             TextField field = (TextField) row.getChildren().get(1);
             String choice = field.getText() == null ? "" : field.getText().trim();
             if (choice.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Missing choice", "Please fill in choice " + getChoiceLabel(i) + ".");
+                String suffix = context.isBlank() ? "" : " for " + context;
+                showAlert(Alert.AlertType.WARNING, "Missing choice", "Please fill in choice " + getChoiceLabel(i) + suffix + ".");
                 field.requestFocus();
                 return null;
             }
@@ -598,6 +734,10 @@ public class ManageQuestionsController {
     }
 
     private String readSelectedAnswerKeys(VBox choicesBox) {
+        return readSelectedAnswerKeys(choicesBox, "");
+    }
+
+    private String readSelectedAnswerKeys(VBox choicesBox, String context) {
         List<String> selectedKeys = new ArrayList<>();
         for (int i = 0; i < choicesBox.getChildren().size(); i++) {
             HBox row = (HBox) choicesBox.getChildren().get(i);
@@ -608,7 +748,8 @@ public class ManageQuestionsController {
         }
 
         if (selectedKeys.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Missing answer", "Please turn on at least one answer toggle.");
+            String suffix = context.isBlank() ? "" : " for " + context;
+            showAlert(Alert.AlertType.WARNING, "Missing answer", "Please turn on at least one answer toggle" + suffix + ".");
             return null;
         }
 
@@ -728,6 +869,9 @@ public class ManageQuestionsController {
     }
 
     private record WrittenQuestionInput(String questionText, String correctAnswer) {
+    }
+
+    private record MultipleChoiceQuestionInput(String questionText, List<String> choices, String correctAnswer) {
     }
 
     private String safe(String value) {
