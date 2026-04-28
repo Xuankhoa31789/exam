@@ -20,7 +20,6 @@ import jakarta.persistence.TypedQuery;
  * Handles database operations for student exam attempts
  */
 public class ExamAttemptDAO {
-
     /**
      * Save a new exam attempt to database
      *
