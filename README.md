@@ -1,69 +1,47 @@
 # 📚 Student Exam Management System
 
-> A modern JavaFX application for student authentication and management.
+> A full-featured JavaFX desktop application for managing exams, questions, subjects, and student performance — with role-based dashboards for Teachers and Students.
 
 ![Version](https://img.shields.io/badge/version-1.0-blue.svg)
 ![Java](https://img.shields.io/badge/Java-23+-orange.svg)
-![Status](https://img.shields.io/badge/status-early%20stage-yellow.svg)
+![JavaFX](https://img.shields.io/badge/JavaFX-17.0.6-green.svg)
+![Hibernate](https://img.shields.io/badge/Hibernate-7.3.1-red.svg)
+![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)
+![Status](https://img.shields.io/badge/status-functional-brightgreen.svg)
+
+---
 
 ## 🎯 Overview
 
-The **Student Exam Management System** is a desktop application built with JavaFX that provides a user-friendly interface for student registration and authentication. This project is in early stages of development and focuses on core functionality with a clean, maintainable architecture.
+The **Student Exam Management System** is a desktop application built with JavaFX and backed by a MySQL database via Hibernate ORM. It supports two user roles — **Teacher** and **Student** — each with their own dashboard and feature set. Authentication uses SHA-256 password hashing with per-user salts.
 
-### Current Features
+---
 
-✨ **Authentication System**
-- Login interface with username/password validation
-- Student registration form
-- Navigation between screens
+## ✨ Features
 
-👤 **Student Management Foundation**
-- Student data model with essential fields
-- Data Access Object (DAO) pattern for future database integration
-- Profile information structure
+### 🔐 Authentication
+- Login with username and password (SHA-256 + salt hashing via `PasswordUtil`)
+- Self-registration as Student or Teacher
+- Role-based routing to the correct dashboard after login
+- Profile view, edit, password change, and account deletion from within the app
 
-🎨 **Modern UI/UX**
-- FXML-based responsive design
-- Consistent styling across screens
-- Scrollable forms for accessibility
+### 👨‍🏫 Teacher Dashboard
+- **Summary cards**: Total exams, completed exams, scheduled exams, average score, active students
+- **Pie chart**: Exam status distribution (Scheduled / Ongoing / Completed)
+- **Bar chart**: Average scores per exam across recent attempts
+- **Recent attempts table**: Student name, exam, start/end time, score, status, duration
+- **Manage Exams**: Create, edit, and delete exams (title, date, duration, marks, status, subject)
+- **Manage Questions**: Add written or multiple-choice questions to scheduled exams; supports batch add, inline choice editor, toggleable correct-answer selection
+- **Manage Subjects**: Create, edit, and delete subjects (code, name, description) with duplicate-code validation
 
-## 📋 Table of Contents
+### 🎓 Student Dashboard
+- **Summary cards**: Enrolled subjects, available exams, completed attempts, average score
+- **Subject registration**: Browse and register for subjects; filter exam list by subject
+- **Available exams table**: Shows all exams for enrolled subjects with status
+- **Take exam**: Opens an inline exam window with all questions; auto-scores on submission
+- **Attempts history**: Full list of past attempts with score, timing, and status
 
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Architecture](#architecture)
-- [Building & Running](#building--running)
-- [Project Roadmap](#project-roadmap)
-
-## 📦 Prerequisites
-
-- **Java Development Kit (JDK)**: 23 or higher
-- **Maven**: 3.6 or later
-- **Git**: For version control (optional)
-
-## 🚀 Quick Start
-
-### Step 1: Clone the Repository
-
-```bash
-git clone https://github.com/Xuankhoa31789/exam.git
-cd exam
-```
-
-### Step 2: Install Dependencies
-
-```bash
-mvn clean install
-```
-
-### Step 3: Run the Application
-
-```bash
-mvn javafx:run
-```
-
-The login screen will open. You can explore the registration flow and UI.
+---
 
 ## 📁 Project Structure
 
@@ -73,154 +51,239 @@ exam/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/xuka/exam/
-│   │   │       ├── ExamApplication.java        # Application entry point
-│   │   │       ├── LoginController.java        # Login screen controller
-│   │   │       ├── RegisterController.java     # Registration screen controller
+│   │   │       ├── ExamApplication.java              # JavaFX entry point
 │   │   │       ├── config/
-│   │   │       │   └── HibernateUtil.java      # Hibernate configuration (future DB)
+│   │   │       │   └── HibernateUtil.java            # Singleton EntityManagerFactory
+│   │   │       ├── controller/
+│   │   │       │   ├── LoginController.java
+│   │   │       │   ├── RegisterController.java
+│   │   │       │   ├── TeacherDashboardController.java
+│   │   │       │   ├── StudentDashboardController.java
+│   │   │       │   ├── ManageExamsController.java
+│   │   │       │   ├── ManageQuestionsController.java
+│   │   │       │   └── ManageSubjectsController.java
 │   │   │       ├── dao/
-│   │   │       │   └── StudentDAO.java         # Data access object pattern
-│   │   │       └── models/
-│   │   │           └── Student.java            # Student entity model
+│   │   │       │   ├── UserAccountDAO.java
+│   │   │       │   ├── UserInfoDAO.java
+│   │   │       │   ├── SubjectDAO.java
+│   │   │       │   ├── SubjectRegistrationDAO.java
+│   │   │       │   ├── ExamDAO.java
+│   │   │       │   ├── ExamQuestionDAO.java
+│   │   │       │   ├── ExamAttemptDAO.java
+│   │   │       │   ├── QuestionDAO.java
+│   │   │       │   └── StudentAnswerDAO.java
+│   │   │       ├── models/
+│   │   │       │   ├── UserAccount.java
+│   │   │       │   ├── UserInfo.java
+│   │   │       │   ├── Subject.java
+│   │   │       │   ├── Question.java
+│   │   │       │   ├── Exam.java
+│   │   │       │   ├── ExamQuestion.java / ExamQuestionId.java
+│   │   │       │   ├── ExamAttempt.java
+│   │   │       │   ├── StudentAnswer.java
+│   │   │       │   └── SubjectRegistration.java / SubjectRegistrationId.java
+│   │   │       └── util/
+│   │   │           └── PasswordUtil.java             # SHA-256 + salt hashing
 │   │   └── resources/
 │   │       ├── com/xuka/exam/
-│   │       │   ├── login_screen.fxml          # Login UI
-│   │       │   └── register_screen.fxml       # Registration UI
+│   │       │   ├── login_screen.fxml
+│   │       │   ├── register_screen.fxml
+│   │       │   ├── teacher_dashboard.fxml
+│   │       │   ├── student_dashboard.fxml
+│   │       │   ├── manage_exams_popup.fxml
+│   │       │   ├── manage_questions_popup.fxml
+│   │       │   └── manage_subjects_popup.fxml
 │   │       └── META-INF/
-│   │           └── persistence.xml             # JPA configuration
+│   │           └── persistence.xml                   # JPA/Hibernate configuration
 │   └── test/
 │       └── java/
-├── pom.xml                                     # Maven configuration
-└── README.md                                   # This file
+├── pom.xml
+└── README.md
 ```
+
+---
+
+## 🗄️ Data Model
+
+```
+UserAccount ──────── UserInfo
+  (username,           (fullName, email,
+   pwd_hash, salt,      phone, dob,
+   role 0/1)            department, code)
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+    SubjectRegistration           ExamAttempt
+    (student ↔ subject)           (student, exam,
+                                   score, status)
+                                       │
+                                 StudentAnswer
+                                 (answerText,
+                                  obtainedMarks)
+
+Subject ──── Exam ──── ExamQuestion ──── Question
+(code,       (title,   (composite PK:    (text, type,
+ name,        date,     exam+question,    marks,
+ desc)        duration, order)            correctAnswer)
+              marks,
+              status,
+              teacher → UserInfo)
+```
+
+**Roles**: `role = 0` → Student, `role = 1` → Teacher
+
+---
 
 ## 🏗️ Architecture
 
-### MVC Pattern (Model-View-Controller)
-
-The application follows the MVC design pattern for clean separation of concerns:
+The application follows the **MVC pattern** with a dedicated **DAO layer**:
 
 ```
-┌──────────────────────────────────┐
-│    View Layer (FXML)             │
-│  • login_screen.fxml             │
-│  • register_screen.fxml          │
-└─────────────┬──────────────────┘
-              │
-┌─────────────▼──────────────────┐
-│  Controller Layer               │
-│  • LoginController              │
-│  • RegisterController           │
-│  ├─ Input Validation            │
-│  ├─ User Interactions           │
-│  └─ Navigation Logic            │
-└─────────────┬──────────────────┘
-              │
-┌─────────────▼──────────────────┐
-│  Model Layer                    │
-│  • Student (Entity)             │
-│  ├─ fullName                    │
-│  ├─ email                       │
-│  ├─ phone                       │
-│  ├─ dateOfBirth                 │
-│  └─ credentials                 │
-└─────────────┬──────────────────┘
-              │
-┌─────────────▼──────────────────┐
-│  DAO Layer (Future)             │
-│  • StudentDAO                   │
-│  ├─ save()                      │
-│  ├─ update()                    │
-│  ├─ delete()                    │
-│  └─ query()                     │
-└──────────────────────────────────┘
+┌────────────────────────┐
+│   View (FXML)          │  ← login, register, teacher/student dashboards,
+│                        │    manage_exams/questions/subjects popups
+└──────────┬─────────────┘
+           │
+┌──────────▼─────────────┐
+│   Controller Layer     │  ← Input validation, navigation, UI logic
+│   (7 controllers)      │    Runs DB ops on background threads (Platform.runLater)
+└──────────┬─────────────┘
+           │
+┌──────────▼─────────────┐
+│   DAO Layer (9 DAOs)   │  ← All Hibernate EntityManager operations,
+│                        │    transactions with rollback on failure
+└──────────┬─────────────┘
+           │
+┌──────────▼─────────────┐
+│   Model Layer          │  ← Jakarta Persistence entities with
+│   (9 entities)         │    @ManyToOne, @OneToMany, composite PKs
+└────────────────────────┘
 ```
 
-### Core Components
+---
 
-| Component | Purpose |
+## 📦 Prerequisites
+
+| Requirement | Version |
 |---|---|
-| **Student.java** | Entity model representing student data structure |
-| **StudentDAO.java** | Data Access Object - abstraction for data operations |
-| **LoginController.java** | Handles login screen logic and authentication |
-| **RegisterController.java** | Manages registration form and student creation |
-| **ExamApplication.java** | Application entry point and stage initialization |
-| **HibernateUtil.java** | Configuration utility for future database integration |
+| JDK | 23 or higher |
+| Maven | 3.6 or later |
+| MySQL | 8.0 or later |
 
-## 🛠️ Building & Running
+---
 
-### Build the Project
+## ⚙️ Database Setup
+
+Before running the application, create the database and configure credentials.
+
+**1. Create the database:**
+
+```sql
+CREATE DATABASE exam_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+**2. Configure credentials in `src/main/resources/META-INF/persistence.xml`:**
+
+```xml
+<property name="jakarta.persistence.jdbc.url"      value="jdbc:mysql://localhost:3306/exam_management"/>
+<property name="jakarta.persistence.jdbc.user"     value="root"/>
+<property name="jakarta.persistence.jdbc.password" value="your_password"/>
+```
+
+Hibernate is set to `hbm2ddl.auto = update`, so tables are created automatically on first run.
+
+---
+
+## 🚀 Quick Start
+
+**Clone and run in three steps:**
 
 ```bash
-# Clean and build
+# 1. Clone the repository
+git clone https://github.com/Xuankhoa31789/exam.git
+cd exam
+
+# 2. Install dependencies
+mvn clean install
+
+# 3. Run the application
+mvn javafx:run
+```
+
+The login screen will open. Register a new account (as Teacher or Student), then log in.
+
+---
+
+## 🛠️ Build Commands
+
+```bash
+# Clean build
 mvn clean package
 
-# Build with tests
+# Run in development mode (recommended)
+mvn javafx:run
+
+# Run tests
 mvn clean verify
 ```
 
-### Run Application
-
-```bash
-# Development mode (recommended)
-mvn javafx:run
-
-# Build JAR and run
-mvn clean package
-java -m javafx.controls,javafx.fxml -cp target/exam-1.0-SNAPSHOT.jar com.xuka.exam.ExamApplication
-```
+---
 
 ## 📊 Technology Stack
 
 | Technology | Version | Purpose |
 |---|---|---|
-| Java | 23+ | Programming language |
-| JavaFX | 17.0.6 | GUI framework |
-| Hibernate ORM | 7.3.1 | Future database integration |
+| Java | 23+ | Language |
+| JavaFX | 17.0.6 | GUI framework (controls, FXML, charts) |
+| Hibernate ORM | 7.3.1 | Object-relational mapping |
+| Jakarta Persistence | 3.2.0 | JPA API |
+| MySQL Connector/J | 9.6.0 | Database driver |
+| FormsFX | 11.6.0 | JavaFX form utilities |
+| Ikonli | 12.3.1 | Icon support |
+| SLF4J Simple | 2.0.17 | Logging |
+| JUnit Jupiter | 5.10.2 | Testing |
 | Maven | 3.6+ | Build automation |
-| MySQL Connector | 9.6.0 | Future database driver |
 
-## 🚧 Project Roadmap
+---
 
-**Phase 1 (Current)**: Early Foundation
-- ✅ Login/Registration UI
-- ✅ FXML form design
-- ✅ Navigation between screens
-- ✅ Basic form validation
-- 🔄 Input form handling
+## 🔒 Security
 
-**Phase 2 (Next)**: Database Integration
-- ⏳ MySQL database setup
-- ⏳ Hibernate ORM configuration
-- ⏳ DAO implementation for persistence
-- ⏳ Student record storage
+- Passwords are never stored in plain text
+- Each account receives a unique randomly generated salt (32 bytes, Base64-encoded via `SecureRandom`)
+- Passwords are hashed with SHA-256 applied over `salt + password`
+- Verification re-hashes the input and compares — no decryption involved
 
-**Phase 3 (Future)**: Enhanced Features
-- ⏳ User session management
-- ⏳ Dashboard/Profile screens
-- ⏳ Advanced validation rules
-- ⏳ Password hashing/security
+---
 
-**Phase 4 (Future)**: Admin & Reporting
-- ⏳ Admin panel
-- ⏳ Student management interface
-- ⏳ Reports and analytics
-- ⏳ Exam scheduling
+## 🗺️ Screens & Navigation
 
-## 📝 Code Style
+```
+Login Screen
+  ├── [Login]    → Teacher Dashboard  (role = 1)
+  │                  ├── Manage Exams    (popup)
+  │                  ├── Manage Questions (popup, per scheduled exam)
+  │                  └── Manage Subjects  (popup)
+  └── [Register] → Register Screen
+                     └── [Back] → Login Screen
 
-- Follow Java naming conventions
-- Use descriptive variable names
-- Add comments for complex logic
-- Keep methods focused and concise
-- Use FXML for UI layout
+Login Screen
+  └── [Login]    → Student Dashboard  (role = 0)
+                     ├── Register / Select / Unregister Subject
+                     ├── Take Exam (inline exam window)
+                     └── View Attempt History
+```
+
+---
 
 ## 🐛 Known Issues & Limitations
 
-- Database operations not yet implemented
-- No user session persistence
-- Form validation is basic
-- Limited error handling
+- SQL logging is enabled by default (`hibernate.show_sql = true`) — disable in production via `persistence.xml`
+- No timer enforcement during exams; students can take as long as they want
+- Multiple-choice answer scoring is exact-match only (correct key(s) stored as comma-separated letter codes, e.g. `A,C`)
+- Written question scoring is exact-match string comparison (case-insensitive)
+- No admin role or global user management panel yet
+
+---
 
 ## 📧 Contact
 
@@ -232,8 +295,6 @@ java -m javafx.controls,javafx.fxml -cp target/exam-1.0-SNAPSHOT.jar com.xuka.ex
 
 <div align="center">
 
-**⭐ This project is in early stages!!**
-
-[View Issues](https://github.com/Xuankhoa31789/exam/issues) · [Suggest Features](https://github.com/Xuankhoa31789/exam/issues)
+[View Issues](https://github.com/Xuankhoa31789/exam/issues) · [Suggest Features](https://github.com/Xuankhoa31789/exam/issues/new)
 
 </div>
